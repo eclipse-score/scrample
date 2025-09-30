@@ -44,5 +44,8 @@ dash_license_checker(
 use_format_targets()
 
 docs(
+    data = [
+        "@score_platform//:needs_json",
+    ],
     source_dir = "docs",
 )

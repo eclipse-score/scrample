@@ -12,11 +12,17 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-Example Documentation
+Scample example
 =============================
 
-.. toctree::
-   :maxdepth: 5
+.. # Component level
 
-   scrample/index.rst
+.. comp_req:: Comp_Req_1
+   :id: comp_req__scrample__comp_req_1
+   :reqtype: Functional
+   :security: NO
+   :safety: ASIL_B
+   :satisfies: S-CORE_feat_req__baselibs__core_utilities
+   :status: valid
 
+   Example component requirement
