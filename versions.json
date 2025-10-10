@@ -2,5 +2,9 @@
   {
     "version": "main",
     "url": "https://eclipse-score.github.io/scrample/main/"
+  },
+  {
+    "version": "pr-2",
+    "url": "https://eclipse-score.github.io/scrample/pr-2/"
   }
 ]
