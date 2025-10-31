@@ -11,10 +11,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 module(
-    name = "cpp_rust_template_repository",
+    name = "scrample",
     version = "1.0",
 )
 
+# Configure and register the python toolchain.
 bazel_dep(name = "rules_python", version = "1.4.1")
 
 PYTHON_VERSION = "3.12"
@@ -26,32 +27,64 @@ python.toolchain(
 )
 use_repo(python)
 
+# Configure the target toolchain.
+bazel_dep(name = "score_toolchains_qnx", version = "0.0.2", dev_dependency = True)
+
+qnx = use_extension("@score_toolchains_qnx//:extensions.bzl", "toolchains_qnx", dev_dependency = True)
+qnx.sdp(
+    sha256 = "f2e0cb21c6baddbcb65f6a70610ce498e7685de8ea2e0f1648f01b327f6bac63",
+    strip_prefix = "installation",
+    url = "https://www.qnx.com/download/download/79858/installation.tgz",
+)
+use_repo(qnx, "toolchains_qnx_sdp")
+use_repo(qnx, "toolchains_qnx_qcc")
+
+# register_toolchains("@toolchains_qnx_qcc//:qcc_x86_64")
+
 # Add GoogleTest dependency
 bazel_dep(name = "googletest", version = "1.17.0")
 
-# Rust rules for Bazel
-bazel_dep(name = "rules_rust", version = "0.63.0")
+# Add boost dependency
+bazel_dep(name = "rules_boost", repo_name = "com_github_nelhage_rules_boost")
+archive_override(
+    module_name = "rules_boost",
+    strip_prefix = "rules_boost-master",
+    urls = ["https://github.com/nelhage/rules_boost/archive/refs/heads/master.tar.gz"],
+)
+
+bazel_dep(name = "boost.program_options", version = "1.87.0")
 
 # C/C++ rules for Bazel
 bazel_dep(name = "rules_cc", version = "0.2.1")
 
-# LLVM Toolchains Rules - host configuration
-bazel_dep(name = "toolchains_llvm", version = "1.4.0")
-
-llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
-llvm.toolchain(
-    cxx_standard = {"": "c++17"},
-    llvm_version = "19.1.0",
-)
-use_repo(llvm, "llvm_toolchain")
-use_repo(llvm, "llvm_toolchain_llvm")
-
-register_toolchains("@llvm_toolchain//:all")
-
 # tooling
-bazel_dep(name = "score_tooling", version = "1.0.1")
+bazel_dep(name = "score_tooling", version = "1.0.2")
 bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 
 #docs-as-code
-bazel_dep(name = "score_docs_as_code", version = "1.1.0")
+bazel_dep(name = "score_docs_as_code", version = "1.3.0")
+bazel_dep(name = "score_baselibs", version = "0.1.2")
+git_override(
+    module_name = "score_baselibs",
+    commit = "f9ff7421b0841762301d1d0eac35f90c3dd86d8d",
+    remote = "https://github.com/eclipse-score/baselibs.git",
+)
+
+bazel_dep(name = "score_communication", version = "0.0.1")
+git_override(
+    module_name = "score_communication",
+    commit = "2d0d067b064a6e27d115f382bc938a30d44f08e7",
+    remote = "https://github.com/eclipse-score/communication.git",
+)
+
+bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "score_bazel_platforms", version = "0.0.2")
+
+# TRLC dependency for requirements traceability
+bazel_dep(name = "trlc", version = "0.0.0")
+git_override(
+    module_name = "trlc",
+    commit = "ede35c4411d41abe42b8f19e78f8989ff79ad3d8",
+    remote = "https://github.com/bmw-software-engineering/trlc.git",
+)
