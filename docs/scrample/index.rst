@@ -12,11 +12,7 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-Documentation
+Scrample example
 =============================
 
-.. toctree::
-   :maxdepth: 1
-
-   scrample/index.rst
-
+Welcome to scrample application!
