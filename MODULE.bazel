@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 module(
-    name = "scrample",
+    name = "score_scrample",
     version = "0.1.0",
 )
 
