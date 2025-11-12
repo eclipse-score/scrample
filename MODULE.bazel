@@ -63,7 +63,7 @@ bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 
 #docs-as-code
-bazel_dep(name = "score_docs_as_code", version = "2.0.1")
+bazel_dep(name = "score_docs_as_code", version = "2.0.2")
 bazel_dep(name = "score_baselibs", version = "0.1.3")
 bazel_dep(name = "score_communication", version = "0.1.1")
 bazel_dep(name = "platforms", version = "0.0.11")
