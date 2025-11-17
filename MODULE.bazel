@@ -44,6 +44,15 @@ use_repo(qnx, "toolchains_qnx_qcc")
 # Add GoogleTest dependency
 bazel_dep(name = "googletest", version = "1.17.0")
 
+# Add Rust rules for Rust tests
+bazel_dep(name = "rules_rust", version = "0.61.0")
+
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(edition = "2021")
+use_repo(rust, "rust_toolchains")
+
+register_toolchains("@rust_toolchains//:all")
+
 # Add boost dependency
 bazel_dep(name = "rules_boost", repo_name = "com_github_nelhage_rules_boost")
 archive_override(
@@ -66,7 +75,7 @@ bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 bazel_dep(name = "score_docs_as_code", version = "2.0.2")
 bazel_dep(name = "score_baselibs", version = "0.1.3")
 bazel_dep(name = "score_communication", version = "0.1.1")
-bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "score_bazel_platforms", version = "0.0.2")
 
 # TRLC dependency for requirements traceability
