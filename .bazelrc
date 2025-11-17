@@ -21,7 +21,10 @@ build:_common --@score_baselibs//score/json:base_library=nlohmann
 build:_common --@score_baselibs//score/memory/shared/flags:use_typedshmd=False
 build:_common --@score_communication//score/mw/com/flags:tracing_library=stub
 build:_common --cxxopt=-Wno-error=mismatched-new-delete
+build:_common --cxxopt=-Wno-error=deprecated-declarations
 
+# Host platform build configuration
+build:host --config=_common
 
 build:x86_64-qnx --config=_common
 build:x86_64-qnx --noexperimental_merged_skyframe_analysis_execution
