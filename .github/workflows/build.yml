@@ -13,31 +13,22 @@
 
 name: Scrample Build
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
 jobs:
-  build_target:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4.2.2
-      - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@0.9.1
-      - name: Setup QNX License
-        env:
-          SCORE_QNX_LICENSE: ${{ secrets.SCORE_QNX_LICENSE }}
-        run: |
-          mkdir -p /opt/score_qnx/license
-          echo "${SCORE_QNX_LICENSE}" | base64 --decode > /opt/score_qnx/license/licenses
-      - name: Bazel build scrample with qnx toolchain
-        env:
-          SCORE_QNX_USER: ${{ secrets.SCORE_QNX_USER }}
-          SCORE_QNX_PASSWORD: ${{ secrets.SCORE_QNX_PASSWORD }}
-        run: |
-          bazel build --config x86_64-qnx --credential_helper=*.qnx.com=${{ github.workspace }}/.github/tools/qnx_credential_helper.py -- \
-          //src:scrample
-      - name: Cleanup QNX License
-        if: always()
-        run: rm -rf /opt/score_qnx
+  qnx-build:
+    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@main
+    permissions:
+      contents: read
+      pull-requests: read
+    with:
+      bazel-target: "//src:scrample"
+      bazel-config: "x86_64-qnx"
+      credential-helper: ".github/tools/qnx_credential_helper.py"
+      environment-name: "workflow-approval"
+    secrets:
+      score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
+      score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
+      score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
