@@ -1,0 +1,57 @@
+name: Debug QNX helper
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug-helper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Check QNX secrets presence
+        env:
+          SCORE_QNX_LICENSE: ${{ secrets.SCORE_QNX_LICENSE }}
+          SCORE_QNX_USER:    ${{ secrets.SCORE_QNX_USER }}
+          SCORE_QNX_PASSWORD:${{ secrets.SCORE_QNX_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for var in SCORE_QNX_LICENSE SCORE_QNX_USER SCORE_QNX_PASSWORD; do
+            if [ -z "${!var:-}" ]; then
+              echo "::error::$var is NOT set (or empty)"
+            else
+              echo "$var is set (non-empty)"
+            fi
+          done
+
+      - name: Check connectivity to QNX endpoints
+        run: |
+          set -euo pipefail
+          echo "Testing www.qnx.com..."
+          curl -vI --max-time 15 https://www.qnx.com || echo "www.qnx.com failed"
+
+          echo "Testing fusion.qnx.com..."
+          curl -vI --max-time 15 https://fusion.qnx.com || echo "fusion.qnx.com failed"
+
+      - name: Run qnx_credential_helper.py directly
+        env:
+          SCORE_QNX_USER:    ${{ secrets.SCORE_QNX_USER }}
+          SCORE_QNX_PASSWORD:${{ secrets.SCORE_QNX_PASSWORD }}
+        run: |
+          set -euo pipefail
+          CRED_HELPER="${GITHUB_WORKSPACE}/.github/tools/qnx_credential_helper.py"
+          echo "Using helper at: ${CRED_HELPER}"
+          ls -l "${CRED_HELPER}"
+
+          chmod +x "${CRED_HELPER}"
+
+          PAYLOAD='{"uri": "https://fusion.qnx.com/8/79858/installation.tgz"}'
+
+          echo "Running helper with timeout 30s..."
+          START=$(date +%s)
+          OUT="$(timeout 30s "${CRED_HELPER}" <<< "${PAYLOAD}")" || {
+            echo "::error::Helper failed or timed out (exit $?)"
+            exit 1
+          }
+          END=$(date +%s)
+          echo "Helper finished, runtime: $((END-START))s, output length: ${#OUT}"
