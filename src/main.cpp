@@ -124,7 +124,7 @@ int main(const int argc, const char** argv)
     }
     else
     {
-        std::cerr << "Unknown mode " << mode << ", terminating." << std::endl;
+        std::cerr << "Unknown mode " << mode << ", terminating. " << std::endl;
         return EXIT_FAILURE;
     }
 }
