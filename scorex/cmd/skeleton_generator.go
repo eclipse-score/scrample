@@ -76,5 +76,13 @@ func generateSkeleton(targetDir string, selected map[string]ModuleInfo) error {
         return err
     }
 
+	if err := renderTemplate(
+        "templates/application/bazelrc.tmpl",
+        filepath.Join(targetDir, ".bazelrc"),
+        data,
+    ); err != nil {
+        return err
+    }
+
     return nil
 }

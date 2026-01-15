@@ -5,6 +5,13 @@ module(
 
 bazel_dep(name = "rules_cc", version = "0.0.9")
 
+bazel_dep(name = "trlc")
+git_override(
+    module_name = "trlc",
+    remote = "https://github.com/bmw-software-engineering/trlc.git",
+    commit = "650b51a47264a4f232b3341f473527710fc32669",  # trlc-2.0.2 release
+)
+
 {{ range $name, $m := .SelectedModules }}
 bazel_dep(
     name = "{{ $name }}",
