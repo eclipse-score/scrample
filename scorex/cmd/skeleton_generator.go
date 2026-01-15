@@ -13,6 +13,7 @@ var templatesFS embed.FS
 type moduleTemplateData struct {
     ProjectName     string
     SelectedModules map[string]ModuleInfo
+	BazelVersion    string
 }
 
 func renderTemplate(tmplPath, dstPath string, data any) error {
@@ -34,7 +35,7 @@ func renderTemplate(tmplPath, dstPath string, data any) error {
     return t.Execute(f, data)
 }
 
-func generateSkeleton(targetDir string, selected map[string]ModuleInfo) error {
+func generateSkeleton(targetDir string, selected map[string]ModuleInfo, bazelVersion string) error {
     if err := os.MkdirAll(targetDir, 0o755); err != nil {
         return err
     }
@@ -42,6 +43,7 @@ func generateSkeleton(targetDir string, selected map[string]ModuleInfo) error {
     data := moduleTemplateData{
         ProjectName:     filepath.Base(targetDir),
         SelectedModules: selected,
+		BazelVersion:	 bazelVersion,
     }
 
     if err := renderTemplate(
@@ -79,6 +81,14 @@ func generateSkeleton(targetDir string, selected map[string]ModuleInfo) error {
 	if err := renderTemplate(
         "templates/application/bazelrc.tmpl",
         filepath.Join(targetDir, ".bazelrc"),
+        data,
+    ); err != nil {
+        return err
+    }
+
+	if err := renderTemplate(
+        "templates/application/bazelversion.tmpl",
+        filepath.Join(targetDir, ".bazelversion"),
         data,
     ); err != nil {
         return err

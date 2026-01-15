@@ -28,10 +28,11 @@ type SelectedModule struct {
 }
 
 var (
-    initModules   	[]string
-    initTargetDir 	string
-	initName		string
-    initKGURL     	string
+    initModules   		[]string
+    initTargetDir 		string
+	initName			string
+    initKGURL     		string
+	initBazelVersion	string
 )
 
 // KnownGood - known_good.json
@@ -72,6 +73,7 @@ func init() {
         "https://raw.githubusercontent.com/eclipse-score/reference_integration/main/known_good.json",
         "URL or path to known_good.json",
     )
+	initCmd.Flags().StringVar(&initBazelVersion, "bazel-version", "8.3.0", "bazel version to be used in project")
 }
 
 func runInit() error {
@@ -96,7 +98,7 @@ func runInit() error {
 
 	initTargetDir = initTargetDir + "/" + initName
 
-    if err := generateSkeleton(initTargetDir, selected); err != nil {
+    if err := generateSkeleton(initTargetDir, selected, initBazelVersion); err != nil {
         return err
     }
 
