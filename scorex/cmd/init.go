@@ -19,14 +19,26 @@ import (
     "net/http"
     "os"
     "strings"
+	"embed"
+    "path/filepath"
+    "text/template"
 
     "github.com/spf13/cobra"
 )
 
+//go:embed templates/**
+var templatesFS embed.FS
+
+type SelectedModule struct {
+    Name   string
+    Info   ModuleInfo
+}
+
 var (
-    initModules   []string
-    initTargetDir string
-    initKGURL     string
+    initModules   	[]string
+    initTargetDir 	string
+	initName		string
+    initKGURL     	string
 )
 
 // KnownGood - known_good.json
@@ -59,6 +71,7 @@ func init() {
     rootCmd.AddCommand(initCmd)
 
     initCmd.Flags().StringSliceVar(&initModules, "module", nil, "S-CORE Module(s), e.g.: score_communication, score_baselibs")
+	initCmd.Flags().StringVar(&initName, "name", "score_app", "name of the generated project")
     initCmd.Flags().StringVar(&initTargetDir, "dir", ".", "targetdirectory of the generated project")
     initCmd.Flags().StringVar(
         &initKGURL,
@@ -78,20 +91,23 @@ func runInit() error {
         return fmt.Errorf("error loading known_good.json: %w", err)
     }
 
-    // name -> hash (Commit)
-    selected := map[string]string{}
+    selected := map[string]ModuleInfo{}
     for _, m := range initModules {
         name := strings.TrimSpace(m)
         info, ok := kg.Modules[name]
         if !ok {
             return fmt.Errorf("module %q is not defined in known_good.json", name)
         }
-        selected[name] = info.Hash
+        selected[name] = info
     }
 
-    // TODO: setup skeleton project here
-    fmt.Println("Generating skeleton in", initTargetDir, "with modules:", selected)
+	initTargetDir = initTargetDir + "/" + initName
 
+    if err := generateSkeleton(initTargetDir, selected); err != nil {
+        return err
+    }
+
+    fmt.Println("Generating skeleton in", initTargetDir, "with modules:", selected)
     return nil
 }
 
@@ -123,4 +139,39 @@ func loadKnownGood(urlOrPath string) (*KnownGood, error) {
         return nil, err
     }
     return &kg, nil
+}
+
+type moduleTemplateData struct {
+    ProjectName     string
+    SelectedModules map[string]ModuleInfo
+}
+
+func generateSkeleton(targetDir string, selected map[string]ModuleInfo) error {
+    if err := os.MkdirAll(targetDir, 0755); err != nil {
+        return err
+    }
+
+    // example: only MODULE.bazel
+    t, err := template.ParseFS(templatesFS, "templates/application/MODULE.bazel.tmpl")
+    if err != nil {
+        return err
+    }
+
+    f, err := os.Create(filepath.Join(targetDir, "MODULE.bazel"))
+    if err != nil {
+        return err
+    }
+    defer f.Close()
+
+    data := moduleTemplateData{
+        ProjectName:     filepath.Base(targetDir),
+        SelectedModules: selected,
+    }
+
+    if err := t.Execute(f, data); err != nil {
+        return err
+    }
+
+    // TODO: more templates (BUILD, src/main.cpp, …)
+    return nil
 }
