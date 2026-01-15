@@ -19,15 +19,8 @@ import (
     "net/http"
     "os"
     "strings"
-	"embed"
-    "path/filepath"
-    "text/template"
-
     "github.com/spf13/cobra"
 )
-
-//go:embed templates/**
-var templatesFS embed.FS
 
 type SelectedModule struct {
     Name   string
@@ -139,39 +132,4 @@ func loadKnownGood(urlOrPath string) (*KnownGood, error) {
         return nil, err
     }
     return &kg, nil
-}
-
-type moduleTemplateData struct {
-    ProjectName     string
-    SelectedModules map[string]ModuleInfo
-}
-
-func generateSkeleton(targetDir string, selected map[string]ModuleInfo) error {
-    if err := os.MkdirAll(targetDir, 0755); err != nil {
-        return err
-    }
-
-    // example: only MODULE.bazel
-    t, err := template.ParseFS(templatesFS, "templates/application/MODULE.bazel.tmpl")
-    if err != nil {
-        return err
-    }
-
-    f, err := os.Create(filepath.Join(targetDir, "MODULE.bazel"))
-    if err != nil {
-        return err
-    }
-    defer f.Close()
-
-    data := moduleTemplateData{
-        ProjectName:     filepath.Base(targetDir),
-        SelectedModules: selected,
-    }
-
-    if err := t.Execute(f, data); err != nil {
-        return err
-    }
-
-    // TODO: more templates (BUILD, src/main.cpp, …)
-    return nil
 }
