@@ -20,6 +20,7 @@ import (
     "os"
     "strings"
     "github.com/spf13/cobra"
+    "scorex/internal/config"
 )
 
 type SelectedModule struct {
@@ -65,15 +66,15 @@ func init() {
     rootCmd.AddCommand(initCmd)
 
     initCmd.Flags().StringSliceVar(&initModules, "module", nil, "S-CORE Module(s), e.g.: score_communication, score_baselibs")
-	initCmd.Flags().StringVar(&initName, "name", "score_app", "name of the generated project")
-    initCmd.Flags().StringVar(&initTargetDir, "dir", ".", "targetdirectory of the generated project")
+	initCmd.Flags().StringVar(&initName, "name", config.DefaultProjectName, "name of the generated project")
+    initCmd.Flags().StringVar(&initTargetDir, "dir", config.DefaultTargetDir, "targetdirectory of the generated project")
     initCmd.Flags().StringVar(
         &initKGURL,
         "known-good-url",
-        "https://raw.githubusercontent.com/eclipse-score/reference_integration/main/known_good.json",
+        config.DefaultKnownGoodURL,
         "URL or path to known_good.json",
     )
-	initCmd.Flags().StringVar(&initBazelVersion, "bazel-version", "8.3.0", "bazel version to be used in project")
+	initCmd.Flags().StringVar(&initBazelVersion, "bazel-version", config.DefaultBazelVersion, "bazel version to be used in project")
 }
 
 func runInit() error {
