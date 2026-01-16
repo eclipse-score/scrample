@@ -14,9 +14,13 @@ package cmd
 
 import (
     "embed"
+    "io/fs"
     "os"
     "path/filepath"
+    "strings"
     "text/template"
+    "scorex/internal/utils"
+    "scorex/internal/model"
 )
 
 //go:embed templates/**
@@ -24,7 +28,7 @@ var templatesFS embed.FS
 
 type moduleTemplateData struct {
     ProjectName     string
-    SelectedModules map[string]ModuleInfo
+    SelectedModules map[string]model.ModuleInfo
 	BazelVersion    string
 }
 
@@ -47,62 +51,63 @@ func renderTemplate(tmplPath, dstPath string, data any) error {
     return t.Execute(f, data)
 }
 
-func generateSkeleton(targetDir string, selected map[string]ModuleInfo, bazelVersion string) error {
+func generateSkeleton(props utils.SkeletonProperties) error {
+    targetDir := props.TargetDir
+    
     if err := os.MkdirAll(targetDir, 0o755); err != nil {
         return err
     }
 
     data := moduleTemplateData{
-        ProjectName:     filepath.Base(targetDir),
-        SelectedModules: selected,
-		BazelVersion:	 bazelVersion,
+        ProjectName:     props.ProjectName,
+        SelectedModules: props.SelectedModules,
+		BazelVersion:	 props.BazelVersion,
     }
 
-    if err := renderTemplate(
-        "templates/application/MODULE.bazel.tmpl",
-        filepath.Join(targetDir, "MODULE.bazel"),
-        data,
-    ); err != nil {
-        return err
+    templatePath := "templates"
+
+    if props.IsApplication {
+        templatePath = filepath.Join(templatePath, "application")
+
+        if props.UseFeo {
+            templatePath = filepath.Join(templatePath, "feo_app")
+        } else {
+            templatePath = filepath.Join(templatePath, "daal_app")
+        }
     }
 
-    if err := renderTemplate(
-        "templates/application/BUILD.tmpl",
-        filepath.Join(targetDir, "BUILD"),
-        data,
-    ); err != nil {
-        return err
-    }
 
-    if err := renderTemplate(
-        "templates/application/src/BUILD.tmpl",
-        filepath.Join(targetDir, "src", "BUILD"),
-        data,
-    ); err != nil {
-        return err
-    }
+    err := fs.WalkDir(templatesFS, templatePath, func(path string, d fs.DirEntry, err error ) error {
+        if err != nil {
+            return err
+        }
+        if d.IsDir() {
+            return nil
+        }
+        if !strings.HasSuffix(path, ".tmpl") {
+            return nil
+        }
 
-    if err := renderTemplate(
-        "templates/application/src/main.cpp.tmpl",
-        filepath.Join(targetDir, "src", "main.cpp"),
-        data,
-    ); err != nil {
-        return err
-    }
+        // path relative to template's directory bestimmen
+        rel, err :=  filepath.Rel(templatePath, path)
+        if err != nil {
+            return err
+        }
 
-	if err := renderTemplate(
-        "templates/application/bazelrc.tmpl",
-        filepath.Join(targetDir, ".bazelrc"),
-        data,
-    ); err != nil {
-        return err
-    }
+        outRel := strings.TrimSuffix(rel, ".tmpl")
+        
+        // special case: "point.<name>" -> ".<name>"
+        base := filepath.Base(outRel)
+        if strings.HasPrefix(base, "point.") {
+            dir := filepath.Dir(outRel)
+            base = "." + strings.TrimPrefix(base, "point.")
+            outRel = filepath.Join(dir, base)
+        }
 
-	if err := renderTemplate(
-        "templates/application/bazelversion.tmpl",
-        filepath.Join(targetDir, ".bazelversion"),
-        data,
-    ); err != nil {
+        dstPath := filepath.Join(targetDir, outRel)
+        return renderTemplate(path, dstPath, data)
+    })
+    if err != nil {
         return err
     }
 

@@ -21,11 +21,13 @@ import (
     "strings"
     "github.com/spf13/cobra"
     "scorex/internal/config"
+    "scorex/internal/utils"
+    "scorex/internal/model"
 )
 
 type SelectedModule struct {
     Name   string
-    Info   ModuleInfo
+    Info   model.ModuleInfo
 }
 
 var (
@@ -39,17 +41,10 @@ var (
 // KnownGood - known_good.json
 type KnownGood struct {
     Timestamp     string                 `json:"timestamp"`
-    Modules       map[string]ModuleInfo  `json:"modules"`
+    Modules       map[string]model.ModuleInfo  `json:"modules"`
     ManifestSHA256 string                `json:"manifest_sha256"`
     Suite         string                 `json:"suite"`
     DurationS     int                    `json:"duration_s"`
-}
-
-type ModuleInfo struct {
-    Version string `json:"version"`
-    Hash    string `json:"hash"`
-    Repo    string `json:"repo"`
-    Branch  string `json:"branch,omitempty"`
 }
 
 // initCmd represents the init command
@@ -87,7 +82,7 @@ func runInit() error {
         return fmt.Errorf("error loading known_good.json: %w", err)
     }
 
-    selected := map[string]ModuleInfo{}
+    selected := map[string]model.ModuleInfo{}
     for _, m := range initModules {
         name := strings.TrimSpace(m)
         info, ok := kg.Modules[name]
@@ -99,7 +94,16 @@ func runInit() error {
 
 	initTargetDir = initTargetDir + "/" + initName
 
-    if err := generateSkeleton(initTargetDir, selected, initBazelVersion); err != nil {
+    props := utils.SkeletonProperties{
+        ProjectName: initName, 
+        SelectedModules: selected,
+        BazelVersion: initBazelVersion,
+        TargetDir: initTargetDir,
+        IsApplication: true,
+        UseFeo: false,
+    }
+
+    if err := generateSkeleton(props); err != nil {
         return err
     }
 
