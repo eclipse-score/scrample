@@ -10,10 +10,25 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-cc_binary(
-    name = "main",
+
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+
+rust_binary(
+    name = "hello_world_app",
     srcs = [
-        "main.cpp",
+        "hello_world.rs",
+    ],
+    crate_features = ["signalling_relayed_tcp"],
+    rustc_flags = [
+        "-Clink-arg=-lstdc++",
+        "-Clink-arg=-lm",
+        "-Clink-arg=-lc",
     ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//feo:libfeo_rust",
+        "//feo-log:libfeo_log_rust",
+        "//feo-time:libfeo_time_rust",
+    ],
 )
+

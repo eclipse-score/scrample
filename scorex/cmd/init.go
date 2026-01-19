@@ -40,6 +40,8 @@ var (
 	initName			string
     initKGURL     		string
 	initBazelVersion	string
+    initProjectType     string
+    initAppType         string
 )
 
 // KnownGood - known_good.json
@@ -114,8 +116,8 @@ func runInit() error {
         SelectedModules: selected,
         BazelVersion: initBazelVersion,
         TargetDir: initTargetDir,
-        IsApplication: true,
-        UseFeo: false,
+        IsApplication: initProjectType == "Application",
+        UseFeo: initAppType == "feo",
     }
 
     if err := generateSkeleton(props); err != nil {
@@ -169,6 +171,48 @@ func loadKnownGood(urlOrPath string) (*KnownGood, error) {
 
 func runInitInteractive() error {
     reader := bufio.NewReader(os.Stdin)
+
+    appChar := "a"
+    moduleChar := "m"
+
+    // project type
+    fmt.Printf("Project type (%s = application, %s = module): ", appChar, moduleChar)
+    v, err := readLine(reader)
+    if err != nil {
+        return err
+    }
+    v = strings.ToLower(v)
+
+    switch v {
+    case "", appChar: // Default: application
+        initProjectType = "Application"
+    case moduleChar:
+        initProjectType = "Module"
+    default:
+        return fmt.Errorf("invalid project type %q (use %s or %s)", v, appChar, moduleChar)
+    }
+
+    // application type (nur bei Application)
+    if initProjectType == "Application" {
+        feoChar := "f"
+        daalChar := "d"
+
+        fmt.Printf("Application type (%s = FEO, %s = DAAL): ", feoChar, daalChar)
+        v, err := readLine(reader)
+        if err != nil {
+            return err
+        }
+        v = strings.ToLower(v)
+
+        switch v {
+        case "", daalChar: // Default: DAAL
+            initAppType = "daal"
+        case feoChar:
+            initAppType = "feo"
+        default:
+            return fmt.Errorf("invalid application type %q (use %s or %s)", v, feoChar, daalChar)
+        }
+    }
 
     // project name
     fmt.Printf("Project name [%s]: ", initName)
