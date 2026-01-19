@@ -19,6 +19,10 @@ import (
     "net/http"
     "os"
     "strings"
+    "bufio"
+    "sort"
+    "strconv"
+
     "github.com/spf13/cobra"
     "scorex/internal/config"
     "scorex/internal/utils"
@@ -53,6 +57,9 @@ var initCmd = &cobra.Command{
     Short: "Generates an S-CORE skeleton application",
     Long:  `Generates a new S-CORE project with selected modules.`,
     RunE: func(cmd *cobra.Command, args []string) error {
+        if len(initModules) == 0 {
+            return runInitInteractive()
+        }
         return runInit()
     },
 }
@@ -147,4 +154,92 @@ func loadKnownGood(urlOrPath string) (*KnownGood, error) {
         return nil, err
     }
     return &kg, nil
+}
+
+func runInitInteractive() error {
+    reader := bufio.NewReader(os.Stdin)
+
+    // project name
+    fmt.Printf("Project name [%s]: ", initName)
+    if v, err := readLine(reader); err != nil {
+        return err
+    } else if v != "" {
+        initName = v
+    }
+
+    // target directory
+    fmt.Printf("Target directory [%s]: ", initTargetDir)
+    if v, err := readLine(reader); err != nil {
+        return err
+    } else if v != "" {
+        initTargetDir = v
+    }
+
+    // load known-good
+    kg, err := loadKnownGood(initKGURL)
+    if err != nil {
+        return fmt.Errorf("error loading known_good.json: %w", err)
+    }
+
+    // choose modules
+    modules, err := promptModules(reader, kg.Modules)
+    if err != nil {
+        return err
+    }
+    if len(modules) == 0 {
+        return fmt.Errorf("no modules selected")
+    }
+    initModules = modules
+
+    return runInit()
+}
+
+func readLine(r *bufio.Reader) (string, error) {
+    line, err := r.ReadString('\n')
+    if err != nil && err != io.EOF {
+        return "", err
+    }
+    return strings.TrimSpace(line), nil
+}
+
+func promptModules(r *bufio.Reader, known map[string]model.ModuleInfo) ([]string, error) {
+    if len(known) == 0 {
+        return nil, fmt.Errorf("no modules in known_good.json")
+    }
+
+    // sorted list of module names
+    names := make([]string, 0, len(known))
+    for n := range known {
+        names = append(names, n)
+    }
+    sort.Strings(names)
+
+    fmt.Println("\nAvailable S-CORE modules:")
+    for i, n := range names {
+        fmt.Printf("  [%d] %s\n", i+1, n)
+    }
+    fmt.Print("Select modules (comma-separated indices, e.g. 1,3,5): ")
+
+    sel, err := readLine(r)
+    if err != nil {
+        return nil, err
+    }
+    if sel == "" {
+        return nil, nil
+    }
+
+    parts := strings.Split(sel, ",")
+    var result []string
+    for _, p := range parts {
+        p = strings.TrimSpace(p)
+        if p == "" {
+            continue
+        }
+        idx, err := strconv.Atoi(p)
+        if err != nil || idx < 1 || idx > len(names) {
+            return nil, fmt.Errorf("invalid module index: %q", p)
+        }
+        result = append(result, names[idx-1])
+    }
+    return result, nil
 }
