@@ -10,10 +10,20 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+
 cc_binary(
-    name = "main",
+    name = "af_hello_world",
     srcs = [
+        "hello_world_app.hpp",
         "main.cpp",
     ],
-    visibility = ["//visibility:public"],
+    deps = [
+        "@score_daal//src:daal_app_executor_builder",
+        "@score_daal//src:daal_app_handler_singleshot",
+        "@score_daal//src:daal_checkpoint",
+        "@score_daal//src:daal_logger",
+        "@score_daal//src:daal_os_helper",
+        "@score_daal//src:daal_trigger",
+        "@score_daal//src:dummy_execution_environment",
+    ],
 )
