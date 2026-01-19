@@ -5,6 +5,7 @@ import (
     "fmt"
     "net/http"
     "time"
+    "strings"
 
     "scorex/internal/model"
 )
@@ -19,8 +20,10 @@ func ResolveModuleWithFallback(
         return mi, nil
     }
 
+    repoName := strings.TrimPrefix(name, "score_")
+
     // Fallback: neuester Commit auf main von GitHub
-    latestCommit, err := fetchLatestGithubMainCommit("eclipse-score", name)
+    latestCommit, err := fetchLatestGithubMainCommit("eclipse-score", repoName)
     if err != nil {
         return model.ModuleInfo{}, fmt.Errorf(
             "module %q not in known_good and GitHub lookup failed: %w",
@@ -29,9 +32,9 @@ func ResolveModuleWithFallback(
     }
 
     mi := model.ModuleInfo{
-        Version: "0.1.0",
+        Version: "0.1.0", //TODO get correct version number
         Hash:    latestCommit,
-        Repo:    fmt.Sprintf("https://github.com/eclipse-score/%s.git", name),
+        Repo:    fmt.Sprintf("https://github.com/eclipse-score/%s.git", repoName),
         Branch:  "main",
     }
 
