@@ -122,6 +122,17 @@ func runInit() error {
         return err
     }
 
+    cfg := &config.ProjectConfig{
+        ProjectName:  initName,
+        Template:     "daal_app",
+        BazelVersion: initBazelVersion,
+        KnownGoodURL: initKGURL,
+        Modules:      initModules,
+    }
+    if err := config.WriteProjectConfig(initTargetDir, cfg); err != nil {
+        return fmt.Errorf("writing scorex config: %w", err)
+    }
+
     fmt.Println("Generating skeleton in", initTargetDir, "with modules:", selected)
     return nil
 }
