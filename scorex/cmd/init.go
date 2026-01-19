@@ -77,19 +77,27 @@ func runInit() error {
         return fmt.Errorf("at least one --module must be set")
     }
 
+    
+
     kg, err := loadKnownGood(initKGURL)
     if err != nil {
         return fmt.Errorf("error loading known_good.json: %w", err)
     }
 
     selected := map[string]model.ModuleInfo{}
-    for _, m := range initModules {
-        name := strings.TrimSpace(m)
-        info, ok := kg.Modules[name]
-        if !ok {
-            return fmt.Errorf("module %q is not defined in known_good.json", name)
+    knownGoodModules := kg.Modules
+
+    for _, name := range initModules {
+        moduleName := name
+        if !strings.HasPrefix(moduleName, "score_") {
+            moduleName = "score_" + moduleName
         }
-        selected[name] = info
+
+        mi, err := utils.ResolveModuleWithFallback(moduleName, knownGoodModules)
+        if err != nil {
+            return fmt.Errorf("resolving module %q failed: %w", moduleName, err)
+        }
+        selected[moduleName] = mi
     }
 
 	initTargetDir = initTargetDir + "/" + initName
