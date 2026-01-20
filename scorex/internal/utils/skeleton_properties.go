@@ -1,14 +1,6 @@
 package utils
 
-import (
-	"scorex/internal/model"
-)
+import "scorex/internal/service/skeleton"
 
-type SkeletonProperties struct {
-    ProjectName     string
-    SelectedModules map[string]model.ModuleInfo
-    BazelVersion    string
-    TargetDir       string
-    IsApplication   bool
-    UseFeo          bool
-}
+// Deprecated: use scorex/internal/service/skeleton.Properties.
+type SkeletonProperties = skeleton.Properties

@@ -10,26 +10,22 @@
 *
 * SPDX-License-Identifier: Apache-2.0
 ********************************************************************************/
-package cmd
+package skeleton
 
 import (
-    "embed"
     "io/fs"
     "os"
     "path/filepath"
     "strings"
     "text/template"
-    "scorex/internal/utils"
-    "scorex/internal/model"
-)
 
-//go:embed templates/**
-var templatesFS embed.FS
+    templatesfs "scorex/internal/templates"
+)
 
 type moduleTemplateData struct {
     ProjectName     string
-    SelectedModules map[string]model.ModuleInfo
-	BazelVersion    string
+    SelectedModules map[string]any
+    BazelVersion    string
 }
 
 func renderTemplate(tmplPath, dstPath string, data any) error {
@@ -37,7 +33,7 @@ func renderTemplate(tmplPath, dstPath string, data any) error {
         return err
     }
 
-    t, err := template.ParseFS(templatesFS, tmplPath)
+    t, err := template.ParseFS(templatesfs.FS, tmplPath)
     if err != nil {
         return err
     }
@@ -51,33 +47,31 @@ func renderTemplate(tmplPath, dstPath string, data any) error {
     return t.Execute(f, data)
 }
 
-func generateSkeleton(props utils.SkeletonProperties) error {
+// Generate creates a project skeleton based on the provided properties.
+func Generate(props Properties) error {
     targetDir := props.TargetDir
-    
+
     if err := os.MkdirAll(targetDir, 0o755); err != nil {
         return err
     }
 
     data := moduleTemplateData{
         ProjectName:     props.ProjectName,
-        SelectedModules: props.SelectedModules,
-		BazelVersion:	 props.BazelVersion,
+        SelectedModules: toAnyMap(props.SelectedModules),
+        BazelVersion:    props.BazelVersion,
     }
 
-    templatePath := "templates"
+    templatePath := "module"
 
     if props.IsApplication {
-        templatePath = filepath.Join(templatePath, "application")
-
         if props.UseFeo {
-            templatePath = filepath.Join(templatePath, "feo_app")
+            templatePath = filepath.Join("application", "feo_app")
         } else {
-            templatePath = filepath.Join(templatePath, "daal_app")
+            templatePath = filepath.Join("application", "daal_app")
         }
     }
 
-
-    err := fs.WalkDir(templatesFS, templatePath, func(path string, d fs.DirEntry, err error ) error {
+    err := fs.WalkDir(templatesfs.FS, templatePath, func(path string, d fs.DirEntry, err error) error {
         if err != nil {
             return err
         }
@@ -88,15 +82,13 @@ func generateSkeleton(props utils.SkeletonProperties) error {
             return nil
         }
 
-        // path relative to template's directory bestimmen
-        rel, err :=  filepath.Rel(templatePath, path)
+        rel, err := filepath.Rel(templatePath, path)
         if err != nil {
             return err
         }
 
         outRel := strings.TrimSuffix(rel, ".tmpl")
-        
-        // special case: "point.<name>" -> ".<name>"
+
         base := filepath.Base(outRel)
         if strings.HasPrefix(base, "point.") {
             dir := filepath.Dir(outRel)
@@ -112,4 +104,12 @@ func generateSkeleton(props utils.SkeletonProperties) error {
     }
 
     return nil
+}
+
+func toAnyMap[T any](in map[string]T) map[string]any {
+    out := make(map[string]any, len(in))
+    for k, v := range in {
+        out[k] = v
+    }
+    return out
 }
