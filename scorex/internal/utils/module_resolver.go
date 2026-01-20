@@ -41,6 +41,31 @@ func ResolveModuleWithFallback(
     return mi, nil
 }
 
+// ResolveModules resolves a list of module names against the known-good set,
+// automatically prefixing names with "score_" when missing and falling back
+// to GitHub if a module is not present in known_good.
+func ResolveModules(
+    modules []string,
+    knownGood map[string]model.ModuleInfo,
+) (map[string]model.ModuleInfo, error) {
+    selected := make(map[string]model.ModuleInfo, len(modules))
+
+    for _, name := range modules {
+        moduleName := name
+        if !strings.HasPrefix(moduleName, "score_") {
+            moduleName = "score_" + moduleName
+        }
+
+        mi, err := ResolveModuleWithFallback(moduleName, knownGood)
+        if err != nil {
+            return nil, fmt.Errorf("resolving module %q failed: %w", moduleName, err)
+        }
+        selected[moduleName] = mi
+    }
+
+    return selected, nil
+}
+
 func fetchLatestGithubMainCommit(owner, repo string) (string, error) {
     url := fmt.Sprintf("https://api.github.com/repos/%s/%s/commits/main", owner, repo)
 

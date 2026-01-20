@@ -13,26 +13,19 @@
 package cmd
 
 import (
-    "encoding/json"
+    "bufio"
     "fmt"
     "io"
-    "net/http"
-    "os"
     "strings"
-    "bufio"
     "sort"
     "strconv"
+    "os"
 
     "github.com/spf13/cobra"
     "scorex/internal/config"
     "scorex/internal/utils"
     "scorex/internal/model"
 )
-
-type SelectedModule struct {
-    Name   string
-    Info   model.ModuleInfo
-}
 
 var (
     initModules   		[]string
@@ -43,15 +36,6 @@ var (
     initProjectType     string
     initAppType         string
 )
-
-// KnownGood - known_good.json
-type KnownGood struct {
-    Timestamp     string                 `json:"timestamp"`
-    Modules       map[string]model.ModuleInfo  `json:"modules"`
-    ManifestSHA256 string                `json:"manifest_sha256"`
-    Suite         string                 `json:"suite"`
-    DurationS     int                    `json:"duration_s"`
-}
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
@@ -86,27 +70,16 @@ func runInit() error {
         return fmt.Errorf("at least one --module must be set")
     }
 
-    
-
-    kg, err := loadKnownGood(initKGURL)
+    kg, err := config.LoadKnownGood(initKGURL)
     if err != nil {
         return fmt.Errorf("error loading known_good.json: %w", err)
     }
 
-    selected := map[string]model.ModuleInfo{}
     knownGoodModules := kg.Modules
 
-    for _, name := range initModules {
-        moduleName := name
-        if !strings.HasPrefix(moduleName, "score_") {
-            moduleName = "score_" + moduleName
-        }
-
-        mi, err := utils.ResolveModuleWithFallback(moduleName, knownGoodModules)
-        if err != nil {
-            return fmt.Errorf("resolving module %q failed: %w", moduleName, err)
-        }
-        selected[moduleName] = mi
+    selected, err := utils.ResolveModules(initModules, knownGoodModules)
+    if err != nil {
+        return err
     }
 
 	initTargetDir = initTargetDir + "/" + initName
@@ -137,36 +110,6 @@ func runInit() error {
 
     fmt.Println("Generating skeleton in", initTargetDir, "with modules:", selected)
     return nil
-}
-
-func loadKnownGood(urlOrPath string) (*KnownGood, error) {
-    var data []byte
-    if strings.HasPrefix(urlOrPath, "http://") || strings.HasPrefix(urlOrPath, "https://") {
-        resp, err := http.Get(urlOrPath)
-        if err != nil {
-            return nil, err
-        }
-        defer resp.Body.Close()
-        if resp.StatusCode != http.StatusOK {
-            return nil, fmt.Errorf("HTTP %s", resp.Status)
-        }
-        data, err = io.ReadAll(resp.Body)
-        if err != nil {
-            return nil, err
-        }
-    } else {
-        var err error
-        data, err = os.ReadFile(urlOrPath)
-        if err != nil {
-            return nil, err
-        }
-    }
-
-    var kg KnownGood
-    if err := json.Unmarshal(data, &kg); err != nil {
-        return nil, err
-    }
-    return &kg, nil
 }
 
 func runInitInteractive() error {
@@ -231,7 +174,7 @@ func runInitInteractive() error {
     }
 
     // load known-good
-    kg, err := loadKnownGood(initKGURL)
+    kg, err := config.LoadKnownGood(initKGURL)
     if err != nil {
         return fmt.Errorf("error loading known_good.json: %w", err)
     }
