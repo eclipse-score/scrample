@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -28,15 +29,17 @@ import (
 	"scorex/internal/service/projectinit"
 )
 
-var (
-	initModules      []string
-	initTargetDir    string
-	initName         string
-	initKGURL        string
-	initBazelVersion string
-	initProjectType  string
-	initAppType      string
-)
+type initOptions struct {
+	Modules      []string
+	TargetDir    string
+	Name         string
+	KnownGoodURL string
+	BazelVersion string
+	ProjectType  string // Application|Module
+	AppType      string // daal|feo
+}
+
+var initOpts = initOptions{}
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
@@ -44,41 +47,46 @@ var initCmd = &cobra.Command{
 	Short: "Generates an S-CORE skeleton application",
 	Long:  `Generates a new S-CORE project with selected modules.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(initModules) == 0 {
-			return runInitInteractive()
+		if err := validateInitOptions(initOpts); err != nil {
+			return err
 		}
-		return runInit()
+
+		if len(initOpts.Modules) == 0 {
+			return runInitInteractive(&initOpts)
+		}
+		return runInit(initOpts)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(initCmd)
 
-	initCmd.Flags().StringSliceVar(&initModules, "module", nil, "S-CORE Module(s), e.g.: score_communication, score_baselibs")
-	initCmd.Flags().StringVar(&initName, "name", config.DefaultProjectName, "name of the generated project")
-	initCmd.Flags().StringVar(&initTargetDir, "dir", config.DefaultTargetDir, "targetdirectory of the generated project")
+	initOpts.ProjectType = "Application"
+	initOpts.AppType = "daal"
+
+	initCmd.Flags().StringSliceVar(&initOpts.Modules, "module", nil, "S-CORE Module(s), e.g.: score_communication, score_baselibs")
+	initCmd.Flags().StringVar(&initOpts.Name, "name", config.DefaultProjectName, "name of the generated project")
+	initCmd.Flags().StringVar(&initOpts.TargetDir, "dir", config.DefaultTargetDir, "targetdirectory of the generated project")
 	initCmd.Flags().StringVar(
-		&initKGURL,
+		&initOpts.KnownGoodURL,
 		"known-good-url",
 		config.DefaultKnownGoodURL,
 		"URL or path to known_good.json",
 	)
-	initCmd.Flags().StringVar(&initBazelVersion, "bazel-version", config.DefaultBazelVersion, "bazel version to be used in project")
+	initCmd.Flags().StringVar(&initOpts.BazelVersion, "bazel-version", config.DefaultBazelVersion, "bazel version to be used in project")
+	initCmd.Flags().StringVar(&initOpts.ProjectType, "project-type", initOpts.ProjectType, "project type: Application or Module")
+	initCmd.Flags().StringVar(&initOpts.AppType, "app-type", initOpts.AppType, "application type (for Application projects): daal or feo")
 }
 
-func runInit() error {
-	if len(initModules) == 0 {
-		return fmt.Errorf("at least one --module must be set")
-	}
-
+func runInit(opts initOptions) error {
 	opts := projectinit.Options{
-		Modules:      initModules,
-		TargetDir:    initTargetDir,
-		Name:         initName,
-		KnownGoodURL: initKGURL,
-		BazelVersion: initBazelVersion,
-		ProjectType:  initProjectType,
-		AppType:      initAppType,
+		Modules:      opts.Modules,
+		TargetDir:    opts.TargetDir,
+		Name:         opts.Name,
+		KnownGoodURL: opts.KnownGoodURL,
+		BazelVersion: opts.BazelVersion,
+		ProjectType:  opts.ProjectType,
+		AppType:      opts.AppType,
 	}
 
 	result, err := projectinit.Run(opts)
@@ -90,7 +98,7 @@ func runInit() error {
 	return nil
 }
 
-func runInitInteractive() error {
+func runInitInteractive(opts *initOptions) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	appChar := "a"
@@ -106,15 +114,15 @@ func runInitInteractive() error {
 
 	switch v {
 	case "", appChar: // Default: application
-		initProjectType = "Application"
+		opts.ProjectType = "Application"
 	case moduleChar:
-		initProjectType = "Module"
+		opts.ProjectType = "Module"
 	default:
 		return fmt.Errorf("invalid project type %q (use %s or %s)", v, appChar, moduleChar)
 	}
 
 	// application type (nur bei Application)
-	if initProjectType == "Application" {
+	if opts.ProjectType == "Application" {
 		feoChar := "f"
 		daalChar := "d"
 
@@ -127,32 +135,32 @@ func runInitInteractive() error {
 
 		switch v {
 		case "", daalChar: // Default: DAAL
-			initAppType = "daal"
+			opts.AppType = "daal"
 		case feoChar:
-			initAppType = "feo"
+			opts.AppType = "feo"
 		default:
 			return fmt.Errorf("invalid application type %q (use %s or %s)", v, feoChar, daalChar)
 		}
 	}
 
 	// project name
-	fmt.Printf("Project name [%s]: ", initName)
+	fmt.Printf("Project name [%s]: ", opts.Name)
 	if v, err := readLine(reader); err != nil {
 		return err
 	} else if v != "" {
-		initName = v
+		opts.Name = v
 	}
 
 	// target directory
-	fmt.Printf("Target directory [%s]: ", initTargetDir)
+	fmt.Printf("Target directory [%s]: ", opts.TargetDir)
 	if v, err := readLine(reader); err != nil {
 		return err
 	} else if v != "" {
-		initTargetDir = v
+		opts.TargetDir = v
 	}
 
 	// load known-good
-	kg, err := knowngood.Load(initKGURL)
+	kg, err := knowngood.Load(opts.KnownGoodURL)
 	if err != nil {
 		return fmt.Errorf("error loading known_good.json: %w", err)
 	}
@@ -165,9 +173,47 @@ func runInitInteractive() error {
 	if len(modules) == 0 {
 		return fmt.Errorf("no modules selected")
 	}
-	initModules = modules
+	opts.Modules = modules
 
-	return runInit()
+	if err := validateInitOptions(*opts); err != nil {
+		return err
+	}
+	return runInit(*opts)
+}
+
+func validateInitOptions(opts initOptions) error {
+	validProjectTypes := []string{"Application", "Module"}
+	if opts.ProjectType == "" {
+		return fmt.Errorf("--project-type must be set (Application or Module)")
+	}
+	if !slices.Contains(validProjectTypes, opts.ProjectType) {
+		return fmt.Errorf("invalid --project-type %q (use Application or Module)", opts.ProjectType)
+	}
+
+	if opts.ProjectType == "Application" {
+		validAppTypes := []string{"daal", "feo"}
+		if opts.AppType == "" {
+			return fmt.Errorf("--app-type must be set for Application projects (daal or feo)")
+		}
+		if !slices.Contains(validAppTypes, opts.AppType) {
+			return fmt.Errorf("invalid --app-type %q (use daal or feo)", opts.AppType)
+		}
+	}
+
+	if opts.Name == "" {
+		return fmt.Errorf("--name must be set")
+	}
+	if opts.TargetDir == "" {
+		return fmt.Errorf("--dir must be set")
+	}
+	if opts.KnownGoodURL == "" {
+		return fmt.Errorf("--known-good-url must be set")
+	}
+	if opts.BazelVersion == "" {
+		return fmt.Errorf("--bazel-version must be set")
+	}
+
+	return nil
 }
 
 func readLine(r *bufio.Reader) (string, error) {
