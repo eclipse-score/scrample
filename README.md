@@ -256,6 +256,7 @@ QNX cross-compilation requires:
 Future extensions planned for SCRAMPLE:
 
 - Additional S-CORE platform module demonstrations
+    - [FEO demo application](feo/ad-demo/README.md)
 - More complex communication patterns
 - Performance benchmarking utilities
 - Integration with other S-CORE components

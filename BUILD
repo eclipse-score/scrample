@@ -26,6 +26,7 @@ setup_starpls(
 copyright_checker(
     name = "copyright",
     srcs = [
+        "feo/ad-demo",
         "scorex",
         "src",
         "tests",

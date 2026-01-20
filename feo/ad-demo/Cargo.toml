@@ -1,0 +1,10 @@
+[package]
+name = "ad-demo-local-crates"
+version = "0.0.1"
+edition = "2024"
+
+[dependencies]
+# crate dependencies specific to ad-demo and not available in @score_crates
+mcap = "0.23.4"
+camino = "1.2.1"
+memmap2 = "0.9.9"
