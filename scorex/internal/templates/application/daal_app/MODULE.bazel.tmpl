@@ -27,7 +27,6 @@ bazel_dep(name = "rules_cc", version = "0.2.1")
 
 {{ range $name, $m := .SelectedModules }}
 # {{ $name }}
-
 bazel_dep(
     name = "{{ $name }}",
     version = "{{ $m.Version }}",
@@ -38,4 +37,5 @@ git_override(
     remote = "{{ $m.Repo }}",
     commit = "{{ $m.Hash }}",
 )
+
 {{ end }}

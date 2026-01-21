@@ -38,7 +38,6 @@ git_override(
 
 {{ range $name, $m := .SelectedModules }}
 # {{ $name }}
-
 bazel_dep(
     name = "{{ $name }}",
     version = "{{ $m.Version }}",
@@ -49,6 +48,5 @@ git_override(
     remote = "{{ $m.Repo }}",
     commit = "{{ $m.Hash }}",
 )
-
 
 {{ end }}
