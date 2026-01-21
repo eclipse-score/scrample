@@ -38,6 +38,7 @@ type initOptions struct {
 	ProjectType  string // Application|Module
 	AppType      string // daal|feo
 	IncludeDevcontainer bool
+	ModulePreset string
 }
 
 var initOpts = initOptions{}
@@ -48,11 +49,21 @@ var initCmd = &cobra.Command{
 	Short: "Generates an S-CORE skeleton application",
 	Long:  `Generates a new S-CORE project with selected modules.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := config.ValidateModulePresetUsage(initOpts.Modules, initOpts.ModulePreset); err != nil {
+			return err
+		}
+
 		if err := validateInitOptions(initOpts); err != nil {
 			return err
 		}
 
 		if len(initOpts.Modules) == 0 {
+			if initOpts.ModulePreset != "" {
+				if err := applyPresetNonInteractive(&initOpts); err != nil {
+					return err
+				}
+				return runInit(initOpts)
+			}
 			return runInitInteractive(&initOpts)
 		}
 		return runInit(initOpts)
@@ -78,6 +89,7 @@ func init() {
 	initCmd.Flags().StringVar(&initOpts.ProjectType, "project-type", initOpts.ProjectType, "project type: Application or Module")
 	initCmd.Flags().StringVar(&initOpts.AppType, "app-type", initOpts.AppType, "application type (for Application projects): daal or feo")
 	initCmd.Flags().BoolVar(&initOpts.IncludeDevcontainer, "devcontainer", false, "include a .devcontainer folder")
+	initCmd.Flags().StringVar(&initOpts.ModulePreset, "module-preset", "", "use a predefined module preset (e.g. feo-standard, daal-standard)")
 }
 
 func runInit(opts initOptions) error {
@@ -168,6 +180,17 @@ func runInitInteractive(opts *initOptions) error {
 		return fmt.Errorf("error loading known_good.json: %w", err)
 	}
 
+	// presets (optional)
+	if err := applyPresetInteractive(reader, opts, kg.Modules); err != nil {
+		return err
+	}
+	if len(opts.Modules) > 0 {
+		if err := validateInitOptions(*opts); err != nil {
+			return err
+		}
+		return runInit(*opts)
+	}
+
 	// choose modules
 	modules, err := promptModules(reader, kg.Modules)
 	if err != nil {
@@ -182,6 +205,111 @@ func runInitInteractive(opts *initOptions) error {
 		return err
 	}
 	return runInit(*opts)
+}
+
+func applyPresetNonInteractive(opts *initOptions) error {
+	all, err := config.LoadModulePresets()
+	if err != nil {
+		return err
+	}
+	p, ok := config.FindModulePreset(all, opts.ModulePreset)
+	if !ok {
+		return fmt.Errorf("unknown --module-preset %q (known: %s)", opts.ModulePreset, strings.Join(config.KnownPresetIDs(all), ", "))
+	}
+	if p.ProjectType != "" && p.ProjectType != opts.ProjectType {
+		return fmt.Errorf("module preset %q is not applicable to project type %q", p.ID, opts.ProjectType)
+	}
+	if p.AppType != "" && p.AppType != opts.AppType {
+		return fmt.Errorf("module preset %q is not applicable to app type %q", p.ID, opts.AppType)
+	}
+	if len(p.Modules) == 0 {
+		return fmt.Errorf("module preset %q has no modules", p.ID)
+	}
+	opts.Modules = append([]string(nil), p.Modules...)
+	return nil
+}
+
+func applyPresetInteractive(reader *bufio.Reader, opts *initOptions, known map[string]model.ModuleInfo) error {
+	all, err := config.LoadModulePresets()
+	if err != nil {
+		return err
+	}
+	applicable := config.ApplicableModulePresets(all, opts.ProjectType, opts.AppType)
+	if len(applicable) == 0 {
+		return nil
+	}
+
+	fmt.Println("\nModule presets:")
+	fmt.Println("  [0] Custom (select manually)")
+	for i, p := range applicable {
+		fmt.Printf("  [%d] %s (%s)\n", i+1, p.Label, p.ID)
+	}
+	fmt.Print("Select preset [0]: ")
+
+	v, err := readLine(reader)
+	if err != nil {
+		return err
+	}
+	v = strings.TrimSpace(v)
+	if v == "" {
+		v = "0"
+	}
+
+	idx, err := strconv.Atoi(v)
+	if err != nil || idx < 0 || idx > len(applicable) {
+		return fmt.Errorf("invalid preset selection: %q", v)
+	}
+	if idx == 0 {
+		return nil
+	}
+
+	preset := applicable[idx-1]
+	if len(preset.Modules) == 0 {
+		return fmt.Errorf("selected preset %q has no modules", preset.ID)
+	}
+
+	opts.Modules = append([]string(nil), preset.Modules...)
+
+	addMore, err := confirm(reader, "Add more modules on top of the preset?")
+	if err != nil {
+		return err
+	}
+	if !addMore {
+		return nil
+	}
+
+	extra, err := promptModules(reader, known)
+	if err != nil {
+		return err
+	}
+	opts.Modules = mergeUnique(opts.Modules, extra)
+	return nil
+}
+
+func mergeUnique(a, b []string) []string {
+	seen := make(map[string]struct{}, len(a)+len(b))
+	out := make([]string, 0, len(a)+len(b))
+	for _, s := range a {
+		if s == "" {
+			continue
+		}
+		if _, ok := seen[s]; ok {
+			continue
+		}
+		seen[s] = struct{}{}
+		out = append(out, s)
+	}
+	for _, s := range b {
+		if s == "" {
+			continue
+		}
+		if _, ok := seen[s]; ok {
+			continue
+		}
+		seen[s] = struct{}{}
+		out = append(out, s)
+	}
+	return out
 }
 
 func validateInitOptions(opts initOptions) error {
