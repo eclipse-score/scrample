@@ -243,7 +243,7 @@ func promptModules(r *bufio.Reader, known map[string]model.ModuleInfo) ([]string
 	for i, n := range names {
 		fmt.Printf("  [%d] %s\n", i+1, n)
 	}
-	fmt.Print("Select modules (comma-separated indices, e.g. 1,3,5): ")
+	fmt.Print("Select modules (comma-separated indices or names, e.g. 1,3 or score_foo): ")
 
 	sel, err := readLine(r)
 	if err != nil {
@@ -255,16 +255,60 @@ func promptModules(r *bufio.Reader, known map[string]model.ModuleInfo) ([]string
 
 	parts := strings.Split(sel, ",")
 	var result []string
+	seen := make(map[string]struct{})
 	for _, p := range parts {
 		p = strings.TrimSpace(p)
 		if p == "" {
 			continue
 		}
-		idx, err := strconv.Atoi(p)
-		if err != nil || idx < 1 || idx > len(names) {
-			return nil, fmt.Errorf("invalid module index: %q", p)
+
+		// Either an index into the known-good list, or a module name.
+		if idx, err := strconv.Atoi(p); err == nil {
+			if idx < 1 || idx > len(names) {
+				return nil, fmt.Errorf("invalid module index: %q", p)
+			}
+			name := names[idx-1]
+			if _, ok := seen[name]; !ok {
+				result = append(result, name)
+				seen[name] = struct{}{}
+			}
+			continue
 		}
-		result = append(result, names[idx-1])
+
+		// Treat as module name.
+		name := p
+		if _, ok := known[name]; !ok {
+			ok, err := confirm(r, fmt.Sprintf("Module %q is not in known_good.json. Add anyway?", name))
+			if err != nil {
+				return nil, err
+			}
+			if !ok {
+				continue
+			}
+		}
+		if _, ok := seen[name]; !ok {
+			result = append(result, name)
+			seen[name] = struct{}{}
+		}
 	}
 	return result, nil
+}
+
+func confirm(r *bufio.Reader, prompt string) (bool, error) {
+	for {
+		fmt.Printf("%s (y/N): ", prompt)
+		v, err := readLine(r)
+		if err != nil {
+			return false, err
+		}
+		v = strings.TrimSpace(strings.ToLower(v))
+		switch v {
+		case "", "n", "no":
+			return false, nil
+		case "y", "yes":
+			return true, nil
+		default:
+			// keep asking
+		}
+	}
 }
