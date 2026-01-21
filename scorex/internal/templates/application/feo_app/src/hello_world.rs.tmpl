@@ -19,7 +19,7 @@ const AGENT_ID: AgentId = AgentId::new(100);
 const DEFAULT_FEO_CYCLE_TIME: Duration = Duration::from_secs(1);
 
 fn main() {
-    // Logging & Tracing initialisieren
+    // initialize logging & tracing 
     feo_logger::init(LevelFilter::Info, true, true);
     feo_tracing::init(feo_tracing::LevelFilter::INFO);
 

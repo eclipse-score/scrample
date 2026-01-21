@@ -26,9 +26,11 @@ rust_binary(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//feo:libfeo_rust",
-        "//feo-log:libfeo_log_rust",
-        "//feo-time:libfeo_time_rust",
+        "@score_feo//feo:libfeo_rust",
+        "@score_feo//feo-log:libfeo_log_rust",
+        "@score_feo//feo-time:libfeo_time_rust",
+        "@score_feo//feo-logger:libfeo_logger_rust",
+        "@score_feo//feo-tracing:libfeo_tracing_rust",
     ],
 )
 

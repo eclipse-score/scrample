@@ -15,7 +15,19 @@ module(
     version = "0.0.1",
 )
 
-bazel_dep(name = "rules_cc", version = "0.0.9")
+bazel_dep(name = "rules_boost", repo_name = "com_github_nelhage_rules_boost")
+archive_override(
+    module_name = "rules_boost",
+    strip_prefix = "rules_boost-master",
+    urls = ["https://github.com/nelhage/rules_boost/archive/refs/heads/master.tar.gz"],
+)
+
+# Rust rules for Bazel
+bazel_dep(name = "rules_rust", version = "0.67.0")
+bazel_dep(name = "rules_rust_prost", version = "0.67.0")
+
+# C/C++ rules for Bazel
+bazel_dep(name = "rules_cc", version = "0.2.8")
 
 bazel_dep(name = "trlc")
 git_override(
@@ -25,6 +37,8 @@ git_override(
 )
 
 {{ range $name, $m := .SelectedModules }}
+# {{ $name }}
+
 bazel_dep(
     name = "{{ $name }}",
     version = "{{ $m.Version }}",
@@ -35,4 +49,6 @@ git_override(
     remote = "{{ $m.Repo }}",
     commit = "{{ $m.Hash }}",
 )
+
+
 {{ end }}
