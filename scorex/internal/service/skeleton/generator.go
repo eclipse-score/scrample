@@ -87,6 +87,12 @@ func Generate(props Properties) error {
             return err
         }
 
+        // Optional: only include .devcontainer when requested.
+        slashRel := filepath.ToSlash(rel)
+        if !props.IncludeDevcontainer && strings.HasPrefix(slashRel, ".devcontainer/") {
+            return nil
+        }
+
         outRel := strings.TrimSuffix(rel, ".tmpl")
 
         base := filepath.Base(outRel)

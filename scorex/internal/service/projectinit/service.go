@@ -20,6 +20,7 @@ type Options struct {
     BazelVersion string
     ProjectType  string // "Application" or "Module"
     AppType      string // "feo" or "daal"
+	IncludeDevcontainer bool
 }
 
 // Result contains information about the generated project.
@@ -53,6 +54,7 @@ func Run(opts Options) (*Result, error) {
         TargetDir:       targetDir,
         IsApplication:   opts.ProjectType == "Application",
         UseFeo:          opts.AppType == "feo",
+		IncludeDevcontainer: opts.IncludeDevcontainer,
     }
 
     if err := skeleton.Generate(props); err != nil {

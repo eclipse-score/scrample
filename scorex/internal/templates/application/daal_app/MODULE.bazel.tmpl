@@ -25,8 +25,9 @@ git_override(
 # C/C++ rules for Bazel
 bazel_dep(name = "rules_cc", version = "0.2.1")
 
-
 {{ range $name, $m := .SelectedModules }}
+# {{ $name }}
+
 bazel_dep(
     name = "{{ $name }}",
     version = "{{ $m.Version }}",

@@ -10,4 +10,5 @@ type Properties struct {
     TargetDir       string
     IsApplication   bool
     UseFeo          bool
+	IncludeDevcontainer bool
 }

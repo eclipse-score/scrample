@@ -37,6 +37,7 @@ type initOptions struct {
 	BazelVersion string
 	ProjectType  string // Application|Module
 	AppType      string // daal|feo
+	IncludeDevcontainer bool
 }
 
 var initOpts = initOptions{}
@@ -76,20 +77,22 @@ func init() {
 	initCmd.Flags().StringVar(&initOpts.BazelVersion, "bazel-version", config.DefaultBazelVersion, "bazel version to be used in project")
 	initCmd.Flags().StringVar(&initOpts.ProjectType, "project-type", initOpts.ProjectType, "project type: Application or Module")
 	initCmd.Flags().StringVar(&initOpts.AppType, "app-type", initOpts.AppType, "application type (for Application projects): daal or feo")
+	initCmd.Flags().BoolVar(&initOpts.IncludeDevcontainer, "devcontainer", false, "include a .devcontainer folder")
 }
 
 func runInit(opts initOptions) error {
-	opts := projectinit.Options{
-		Modules:      opts.Modules,
-		TargetDir:    opts.TargetDir,
-		Name:         opts.Name,
-		KnownGoodURL: opts.KnownGoodURL,
-		BazelVersion: opts.BazelVersion,
-		ProjectType:  opts.ProjectType,
-		AppType:      opts.AppType,
+	piOpts := projectinit.Options{
+		Modules:             opts.Modules,
+		TargetDir:           opts.TargetDir,
+		Name:                opts.Name,
+		KnownGoodURL:         opts.KnownGoodURL,
+		BazelVersion:        opts.BazelVersion,
+		ProjectType:         opts.ProjectType,
+		AppType:             opts.AppType,
+		IncludeDevcontainer: opts.IncludeDevcontainer,
 	}
 
-	result, err := projectinit.Run(opts)
+	result, err := projectinit.Run(piOpts)
 	if err != nil {
 		return err
 	}
