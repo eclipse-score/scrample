@@ -174,6 +174,14 @@ func runInitInteractive(opts *initOptions) error {
 		opts.TargetDir = v
 	}
 
+    // devcontainer
+    devcontainer, err := confirm(reader, "Use .devcontainer?")
+    if err != nil {
+        return err
+    } else {
+        opts.IncludeDevcontainer = devcontainer
+    }
+
 	// load known-good
 	kg, err := knowngood.Load(opts.KnownGoodURL)
 	if err != nil {

@@ -47,6 +47,17 @@ func renderTemplate(tmplPath, dstPath string, data any) error {
     return t.Execute(f, data)
 }
 
+func undotifyPath(rel string) string {
+    // Work in slash-form, rewrite each segment, then convert back.
+    parts := strings.Split(filepath.ToSlash(rel), "/")
+    for i, p := range parts {
+        if strings.HasPrefix(p, "point.") {
+            parts[i] = "." + strings.TrimPrefix(p, "point.")
+        }
+    }
+    return filepath.FromSlash(strings.Join(parts, "/"))
+}
+
 // Generate creates a project skeleton based on the provided properties.
 func Generate(props Properties) error {
     targetDir := props.TargetDir
@@ -89,11 +100,12 @@ func Generate(props Properties) error {
 
         // Optional: only include .devcontainer when requested.
         slashRel := filepath.ToSlash(rel)
-        if !props.IncludeDevcontainer && strings.HasPrefix(slashRel, ".devcontainer/") {
+        if !props.IncludeDevcontainer && strings.HasPrefix(slashRel, "point.devcontainer/") {
             return nil
         }
 
         outRel := strings.TrimSuffix(rel, ".tmpl")
+		outRel = undotifyPath(outRel)
 
         base := filepath.Base(outRel)
         if strings.HasPrefix(base, "point.") {
