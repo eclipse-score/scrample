@@ -27,6 +27,7 @@ copyright_checker(
     name = "copyright",
     srcs = [
         "src",
+        "scorex",
         "tests",
         "//:BUILD",
         "//:MODULE.bazel",
