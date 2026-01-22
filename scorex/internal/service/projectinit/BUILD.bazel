@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "projectinit",
+    srcs = ["service.go"],
+    importpath = "scorex/internal/service/projectinit",
+    visibility = ["//scorex:__subpackages__"],
+    deps = [
+        "//scorex/internal/config",
+        "//scorex/internal/model",
+        "//scorex/internal/service/knowngood",
+        "//scorex/internal/service/module",
+        "//scorex/internal/service/skeleton",
+    ],
+)

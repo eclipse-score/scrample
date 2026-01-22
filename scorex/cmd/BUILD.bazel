@@ -1,0 +1,18 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cmd",
+    srcs = [
+        "init.go",
+        "root.go",
+    ],
+    importpath = "scorex/cmd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//scorex/internal/config",
+        "//scorex/internal/model",
+        "//scorex/internal/service/knowngood",
+        "//scorex/internal/service/projectinit",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)

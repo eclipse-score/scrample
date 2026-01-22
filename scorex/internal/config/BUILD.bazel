@@ -1,0 +1,18 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "config",
+    srcs = [
+        "config.go",
+        "known_good.go",
+        "module_presets.go",
+        "project_config.go",
+    ],
+    embedsrcs = ["module_presets.json"],
+    importpath = "scorex/internal/config",
+    visibility = ["//scorex:__subpackages__"],
+    deps = [
+        "//scorex/internal/model",
+        "//scorex/internal/service/knowngood",
+    ],
+)

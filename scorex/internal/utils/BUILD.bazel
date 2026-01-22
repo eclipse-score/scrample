@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "utils",
+    srcs = [
+        "module_resolver.go",
+        "skeleton_properties.go",
+    ],
+    importpath = "scorex/internal/utils",
+    visibility = ["//scorex:__subpackages__"],
+    deps = [
+        "//scorex/internal/model",
+        "//scorex/internal/service/module",
+        "//scorex/internal/service/skeleton",
+    ],
+)

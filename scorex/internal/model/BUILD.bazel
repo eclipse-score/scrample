@@ -1,0 +1,11 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "model",
+    srcs = [
+        "known_good.go",
+        "module.go",
+    ],
+    importpath = "scorex/internal/model",
+    visibility = ["//scorex:__subpackages__"],
+)

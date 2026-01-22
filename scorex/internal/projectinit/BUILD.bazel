@@ -1,0 +1,9 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "projectinit",
+    srcs = ["service.go"],
+    importpath = "scorex/internal/projectinit",
+    visibility = ["//scorex:__subpackages__"],
+    deps = ["//scorex/internal/service/projectinit"],
+)

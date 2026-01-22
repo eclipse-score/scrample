@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "skeleton",
+    srcs = [
+        "generator.go",
+        "properties.go",
+    ],
+    importpath = "scorex/internal/service/skeleton",
+    visibility = ["//scorex:__subpackages__"],
+    deps = [
+        "//scorex/internal/model",
+        "//scorex/internal/templates",
+    ],
+)

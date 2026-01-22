@@ -1,0 +1,9 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "knowngood",
+    srcs = ["loader.go"],
+    importpath = "scorex/internal/service/knowngood",
+    visibility = ["//scorex:__subpackages__"],
+    deps = ["//scorex/internal/model"],
+)
