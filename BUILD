@@ -26,8 +26,8 @@ setup_starpls(
 copyright_checker(
     name = "copyright",
     srcs = [
-        "src",
         "scorex",
+        "src",
         "tests",
         "//:BUILD",
         "//:MODULE.bazel",

@@ -25,6 +25,7 @@ python.toolchain(
     is_default = True,
     python_version = PYTHON_VERSION,
 )
+use_repo(python, "python_versions")
 
 # Configure the target toolchain.
 bazel_dep(name = "score_toolchains_qnx", version = "0.0.2", dev_dependency = True)
@@ -48,9 +49,6 @@ bazel_dep(name = "rules_rust", version = "0.61.0")
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(edition = "2021")
-use_repo(rust, "rust_toolchains")
-
-register_toolchains("@rust_toolchains//:all")
 
 # Add boost dependency
 bazel_dep(name = "rules_boost", repo_name = "com_github_nelhage_rules_boost")
@@ -66,7 +64,7 @@ bazel_dep(name = "boost.program_options", version = "1.87.0")
 bazel_dep(name = "rules_cc", version = "0.2.1")
 
 # tooling
-bazel_dep(name = "score_tooling", version = "1.0.5")
+bazel_dep(name = "score_tooling", version = "1.0.2")
 bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 
@@ -91,7 +89,6 @@ bazel_dep(name = "gazelle", version = "0.42.0", repo_name = "bazel_gazelle")
 
 go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
 go_sdk.download(version = "1.23.5")
-use_repo(go_sdk, "go_toolchains")
 
 go_deps = use_extension("@bazel_gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//scorex:go.mod")
