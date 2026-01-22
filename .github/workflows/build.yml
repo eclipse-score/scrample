@@ -18,6 +18,25 @@ on:
   merge_group:
     types: [checks_requested]
 jobs:
+  gazelle-and-go-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.9.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+
+      - name: Run Gazelle
+        run: bazel run //:gazelle
+
+      - name: Build scorex
+        run: bazel build //scorex:scorex
+
   qnx-build:
     uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@main
     permissions:

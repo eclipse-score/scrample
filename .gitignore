@@ -54,3 +54,6 @@ styles/
 .venv
 __pycache__/
 /.coverage
+
+# Gazelle generated BUILD files
+scorex/**/BUILD.bazel
