@@ -10,25 +10,30 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-
-name: Scrample Build
+name: Scrample Build CLI
 on:
   pull_request_target:
     types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
 jobs:
-  qnx-build:
-    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@main
-    permissions:
-      contents: read
-      pull-requests: read
-    with:
-      bazel-target: "//src:scrample"
-      bazel-config: "x86_64-qnx"
-      credential-helper: ".github/tools/qnx_credential_helper.py"
-      environment-name: "workflow-approval"
-    secrets:
-      score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
-      score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
-      score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
+  gazelle-and-go-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.9.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+
+      - name: Run Gazelle
+        run: bazel run //:gazelle
+
+      - name: Build scorex
+        run: bazel build //scorex:scorex
