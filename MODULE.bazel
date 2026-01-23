@@ -64,7 +64,7 @@ bazel_dep(name = "boost.program_options", version = "1.87.0")
 bazel_dep(name = "rules_cc", version = "0.2.1")
 
 # tooling
-bazel_dep(name = "score_tooling", version = "1.0.2")
+bazel_dep(name = "score_tooling", version = "1.0.5")
 bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 

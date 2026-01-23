@@ -12,7 +12,7 @@
 # *******************************************************************************
 name: Scrample Build CLI
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
