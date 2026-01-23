@@ -18,6 +18,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version information, set via ldflags during build
+var (
+	Version   = "dev"
+	GitCommit = "unknown"
+	BuildDate = "unknown"
+)
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "scorex",

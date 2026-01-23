@@ -35,5 +35,26 @@ jobs:
       - name: Run Gazelle
         run: bazel run //:gazelle
 
+      - name: Set version
+        id: version
+        run: |
+          # Get short commit SHA
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          # Create version string
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            VERSION="pr-${{ github.event.pull_request.number }}-${SHORT_SHA}"
+          else
+            VERSION="${SHORT_SHA}"
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Building version: ${VERSION}"
+
       - name: Build scorex
-        run: bazel build //scorex:scorex
+        run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex
+
+      - name: Upload scorex CLI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorex-cli-${{ steps.version.outputs.VERSION }}
+          path: bazel-bin/scorex/scorex_/scorex
+          if-no-files-found: error

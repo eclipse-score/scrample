@@ -33,4 +33,9 @@ go_binary(
     name = "scorex",
     embed = [":scorex_lib"],
     visibility = ["//visibility:public"],
+    x_defs = {
+        "scorex/cmd.Version": "{STABLE_VERSION}",
+        "scorex/cmd.GitCommit": "{STABLE_GIT_COMMIT}",
+        "scorex/cmd.BuildDate": "{STABLE_BUILD_DATE}",
+    },
 )
