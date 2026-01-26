@@ -17,6 +17,7 @@ go_library(
     srcs = [
         "init.go",
         "root.go",
+        "version.go",
     ],
     importpath = "scorex/cmd",
     visibility = ["//visibility:public"],

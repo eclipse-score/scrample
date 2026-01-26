@@ -39,3 +39,55 @@ go_binary(
         "scorex/cmd.BuildDate": "{STABLE_BUILD_DATE}",
     },
 )
+
+go_binary(
+    name = "scorex_linux_amd64",
+    embed = [":scorex_lib"],
+    goarch = "amd64",
+    goos = "linux",
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "scorex/cmd.Version": "{STABLE_VERSION}",
+        "scorex/cmd.GitCommit": "{STABLE_GIT_COMMIT}",
+        "scorex/cmd.BuildDate": "{STABLE_BUILD_DATE}",
+    },
+)
+
+go_binary(
+    name = "scorex_darwin_arm64",
+    embed = [":scorex_lib"],
+    goarch = "arm64",
+    goos = "darwin",
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "scorex/cmd.Version": "{STABLE_VERSION}",
+        "scorex/cmd.GitCommit": "{STABLE_GIT_COMMIT}",
+        "scorex/cmd.BuildDate": "{STABLE_BUILD_DATE}",
+    },
+)
+
+go_binary(
+    name = "scorex_windows_amd64",
+    embed = [":scorex_lib"],
+    goarch = "amd64",
+    goos = "windows",
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "scorex/cmd.Version": "{STABLE_VERSION}",
+        "scorex/cmd.GitCommit": "{STABLE_GIT_COMMIT}",
+        "scorex/cmd.BuildDate": "{STABLE_BUILD_DATE}",
+    },
+)
+
+go_binary(
+    name = "scorex_darwin_amd64",
+    embed = [":scorex_lib"],
+    goarch = "amd64",
+    goos = "darwin",
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "scorex/cmd.Version": "{STABLE_VERSION}",
+        "scorex/cmd.GitCommit": "{STABLE_GIT_COMMIT}",
+        "scorex/cmd.BuildDate": "{STABLE_BUILD_DATE}",
+    },
+)

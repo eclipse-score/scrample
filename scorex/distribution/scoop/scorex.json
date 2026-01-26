@@ -1,0 +1,23 @@
+{
+    "version": "0.1.0",
+    "description": "CLI for creating S-CORE skeleton projects",
+    "homepage": "https://github.com/eclipse-score/score_scrample",
+    "license": "Apache-2.0",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/eclipse-score/score_scrample/releases/download/v0.1.0/scorex-0.1.0-windows-x86_64.zip",
+            "hash": "REPLACE_WITH_ACTUAL_SHA256",
+            "bin": "scorex-windows-x86_64.exe"
+        }
+    },
+    "checkver": {
+        "github": "https://github.com/eclipse-score/score_scrample"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/eclipse-score/score_scrample/releases/download/v$version/scorex-$version-windows-x86_64.zip"
+            }
+        }
+    }
+}
