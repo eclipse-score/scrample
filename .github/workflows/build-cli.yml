@@ -67,7 +67,7 @@ jobs:
         run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex_windows_amd64
 
       - name: Copy Windows binary
-        run: cp bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64 artifacts/scorex-windows-x86_64.exe
+        run: cp bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe artifacts/scorex-windows-x86_64.exe
 
       - name: Upload CLI artifacts
         uses: actions/upload-artifact@v4
