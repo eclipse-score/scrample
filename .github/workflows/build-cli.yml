@@ -49,25 +49,48 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
           echo "Building version: ${VERSION}"
 
-      - name: Build scorex for Linux (x86_64)
-        run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex_linux_amd64
+      - name: Build scorex for all platforms
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }} bazel build \
+            //scorex:scorex_linux_amd64 \
+            //scorex:scorex_darwin_arm64 \
+            //scorex:scorex_windows_amd64
 
-      - name: Copy Linux binary
+      - name: Copy binaries to artifacts
         run: |
           mkdir -p artifacts
-          cp bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64 artifacts/scorex-linux-x86_64
-
-      - name: Build scorex for macOS (Apple Silicon)
-        run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex_darwin_arm64
-
-      - name: Copy macOS binary
-        run: cp bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64 artifacts/scorex-macos-arm64
-
-      - name: Build scorex for Windows (x86_64)
-        run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex_windows_amd64
-
-      - name: Copy Windows binary
-        run: cp bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe artifacts/scorex-windows-x86_64.exe
+          
+          # Debug: Check bazel-bin structure
+          echo "Checking bazel-bin structure:"
+          ls -la bazel-bin/scorex/ || true
+          
+          # Copy Linux binary
+          if [ -f "bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64" ]; then
+            cp bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64 artifacts/scorex-linux-x86_64
+            echo "✓ Linux binary copied"
+          else
+            echo "ERROR: Linux binary not found"
+            find bazel-bin -name "scorex_linux_amd64" -type f
+            exit 1
+          fi
+          
+          # Copy macOS ARM64 binary
+          if [ -f "bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64" ]; then
+            cp bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64 artifacts/scorex-macos-arm64
+            echo "✓ macOS ARM64 binary copied"
+          else
+            echo "ERROR: macOS ARM64 binary not found"
+            exit 1
+          fi
+          
+          # Copy Windows binary
+          if [ -f "bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe" ]; then
+            cp bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe artifacts/scorex-windows-x86_64.exe
+            echo "✓ Windows binary copied"
+          else
+            echo "ERROR: Windows binary not found"
+            exit 1
+          fi
 
       - name: Upload CLI artifacts
         uses: actions/upload-artifact@v4

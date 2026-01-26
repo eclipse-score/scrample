@@ -16,6 +16,17 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to use for test release (e.g., 0.1.0-test)'
+        required: false
+        default: '0.0.0-test'
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'scorex/**'
+      - '.github/workflows/release.yml'
 
 jobs:
   build-and-release:
@@ -39,30 +50,70 @@ jobs:
       - name: Get version from tag
         id: version
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
+          if [ "${{ github.event_name }}" == "push" ] && [ -n "${{ github.ref }}" ]; then
+            # Release from tag
+            VERSION=${GITHUB_REF#refs/tags/v}
+            TAG=${GITHUB_REF#refs/tags/}
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            # Manual test release
+            VERSION="${{ github.event.inputs.version }}"
+            TAG="test-${VERSION}"
+          else
+            # PR test release
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            VERSION="pr-${{ github.event.pull_request.number }}-${SHORT_SHA}"
+            TAG="test-${VERSION}"
+          fi
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
-          echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
           echo "Building version: ${VERSION}"
 
-      - name: Build scorex for Linux (x86_64)
-        run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex_linux_amd64
-
-      - name: Build scorex for macOS (Apple Silicon)
-        run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex_darwin_arm64
-
-      - name: Build scorex for macOS (Intel)
-        run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex_darwin_amd64
-
-      - name: Build scorex for Windows (x86_64)
-        run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex_windows_amd64
+      - name: Build scorex for all platforms
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }} bazel build \
+            //scorex:scorex_linux_amd64 \
+            //scorex:scorex_darwin_arm64 \
+            //scorex:scorex_darwin_amd64 \
+            //scorex:scorex_windows_amd64
 
       - name: Prepare release artifacts
         run: |
           mkdir -p release
-          cp bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64 release/scorex-linux-x86_64
-          cp bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64 release/scorex-macos-arm64
-          cp bazel-bin/scorex/scorex_darwin_amd64_/scorex_darwin_amd64 release/scorex-macos-x86_64
-          cp bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe release/scorex-windows-x86_64.exe
+          # Debug: Check bazel-bin structure
+          echo "Checking bazel-bin structure:"
+          ls -la bazel-bin/scorex/ || true
+          echo "Checking for Linux binary:"
+          ls -la bazel-bin/scorex/scorex_linux_amd64_/ || true
+          
+          # Copy binaries with error checking
+          if [ -f "bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64" ]; then
+            cp bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64 release/scorex-linux-x86_64
+          else
+            echo "ERROR: Linux binary not found at expected location"
+            find bazel-bin -name "scorex_linux_amd64" -type f
+            exit 1
+          fi
+          
+          if [ -f "bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64" ]; then
+            cp bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64 release/scorex-macos-arm64
+          else
+            echo "ERROR: macOS ARM64 binary not found"
+            exit 1
+          fi
+          
+          if [ -f "bazel-bin/scorex/scorex_darwin_amd64_/scorex_darwin_amd64" ]; then
+            cp bazel-bin/scorex/scorex_darwin_amd64_/scorex_darwin_amd64 release/scorex-macos-x86_64
+          else
+            echo "ERROR: macOS AMD64 binary not found"
+            exit 1
+          fi
+          
+          if [ -f "bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe" ]; then
+            cp bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe release/scorex-windows-x86_64.exe
+          else
+            echo "ERROR: Windows binary not found"
+            exit 1
+          fi
 
           # Create compressed archives
           cd release
@@ -75,6 +126,8 @@ jobs:
           sha256sum *.tar.gz *.zip > checksums.txt
 
       - name: Create Release
+        # Only create actual release on tag push
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           files: |
@@ -86,3 +139,12 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: false
+
+      - name: Upload test artifacts
+        # Upload artifacts for PRs and manual runs
+        if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorex-test-binaries-${{ steps.version.outputs.VERSION }}
+          path: release/*
+          retention-days: 7
