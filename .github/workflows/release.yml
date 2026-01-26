@@ -70,46 +70,72 @@ jobs:
 
       - name: Build scorex for all platforms
         run: |
+          echo "Current directory: $(pwd)"
+          echo "Building all platforms..."
           VERSION=${{ steps.version.outputs.VERSION }} bazel build \
             //scorex:scorex_linux_amd64 \
             //scorex:scorex_darwin_arm64 \
             //scorex:scorex_darwin_amd64 \
             //scorex:scorex_windows_amd64
+          echo "Build complete. Exit code: $?"
+
+      - name: Debug bazel output
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo "=== Listing current directory ==="
+          ls -la
+          echo "=== Checking for bazel-bin symlink ==="
+          ls -la | grep bazel || echo "No bazel symlinks found"
+          echo "=== Searching for bazel output ==="
+          find . -type d -name "bazel-bin" 2>/dev/null || echo "bazel-bin directory not found"
+          echo "=== Searching for scorex binaries ==="
+          find . -name "scorex_linux_amd64" -type f 2>/dev/null || echo "No Linux binary found"
 
       - name: Prepare release artifacts
         run: |
           mkdir -p release
-          # Debug: Check bazel-bin structure
-          echo "Checking bazel-bin structure:"
-          ls -la bazel-bin/scorex/ || true
-          echo "Checking for Linux binary:"
-          ls -la bazel-bin/scorex/scorex_linux_amd64_/ || true
-
-          # Copy binaries with error checking
-          if [ -f "bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64" ]; then
-            cp bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64 release/scorex-linux-x86_64
+          
+          # Use bazel cquery to find actual output paths (bazel-bin symlink is cleared for multi-platform builds)
+          echo "Finding binary locations..."
+          LINUX_BIN=$(bazel cquery --output=files //scorex:scorex_linux_amd64 2>/dev/null)
+          DARWIN_ARM64_BIN=$(bazel cquery --output=files //scorex:scorex_darwin_arm64 2>/dev/null)
+          DARWIN_AMD64_BIN=$(bazel cquery --output=files //scorex:scorex_darwin_amd64 2>/dev/null)
+          WINDOWS_BIN=$(bazel cquery --output=files //scorex:scorex_windows_amd64 2>/dev/null)
+          
+          echo "Linux binary: $LINUX_BIN"
+          echo "macOS ARM64 binary: $DARWIN_ARM64_BIN"
+          echo "macOS AMD64 binary: $DARWIN_AMD64_BIN"
+          echo "Windows binary: $WINDOWS_BIN"
+          
+          # Copy binaries
+          if [ -f "$LINUX_BIN" ]; then
+            cp "$LINUX_BIN" release/scorex-linux-x86_64
+            echo "✓ Linux binary copied"
           else
-            echo "ERROR: Linux binary not found at expected location"
-            find bazel-bin -name "scorex_linux_amd64" -type f
+            echo "ERROR: Linux binary not found at $LINUX_BIN"
             exit 1
           fi
 
-          if [ -f "bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64" ]; then
-            cp bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64 release/scorex-macos-arm64
+          if [ -f "$DARWIN_ARM64_BIN" ]; then
+            cp "$DARWIN_ARM64_BIN" release/scorex-macos-arm64
+            echo "✓ macOS ARM64 binary copied"
           else
             echo "ERROR: macOS ARM64 binary not found"
             exit 1
           fi
 
-          if [ -f "bazel-bin/scorex/scorex_darwin_amd64_/scorex_darwin_amd64" ]; then
-            cp bazel-bin/scorex/scorex_darwin_amd64_/scorex_darwin_amd64 release/scorex-macos-x86_64
+          if [ -f "$DARWIN_AMD64_BIN" ]; then
+            cp "$DARWIN_AMD64_BIN" release/scorex-macos-x86_64
+            echo "✓ macOS AMD64 binary copied"
           else
             echo "ERROR: macOS AMD64 binary not found"
             exit 1
           fi
 
-          if [ -f "bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe" ]; then
-            cp bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe release/scorex-windows-x86_64.exe
+          if [ -f "$WINDOWS_BIN" ]; then
+            cp "$WINDOWS_BIN" release/scorex-windows-x86_64.exe
+            echo "✓ Windows binary copied"
           else
             echo "ERROR: Windows binary not found"
             exit 1

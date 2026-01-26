@@ -59,33 +59,36 @@ jobs:
       - name: Copy binaries to artifacts
         run: |
           mkdir -p artifacts
-
-          # Debug: Check bazel-bin structure
-          echo "Checking bazel-bin structure:"
-          ls -la bazel-bin/scorex/ || true
-
-          # Copy Linux binary
-          if [ -f "bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64" ]; then
-            cp bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64 artifacts/scorex-linux-x86_64
+          
+          # Use bazel cquery to find actual output paths (bazel-bin symlink is cleared for multi-platform builds)
+          echo "Finding binary locations..."
+          LINUX_BIN=$(bazel cquery --output=files //scorex:scorex_linux_amd64 2>/dev/null)
+          DARWIN_ARM64_BIN=$(bazel cquery --output=files //scorex:scorex_darwin_arm64 2>/dev/null)
+          WINDOWS_BIN=$(bazel cquery --output=files //scorex:scorex_windows_amd64 2>/dev/null)
+          
+          echo "Linux binary: $LINUX_BIN"
+          echo "macOS ARM64 binary: $DARWIN_ARM64_BIN"
+          echo "Windows binary: $WINDOWS_BIN"
+          
+          # Copy binaries
+          if [ -f "$LINUX_BIN" ]; then
+            cp "$LINUX_BIN" artifacts/scorex-linux-x86_64
             echo "✓ Linux binary copied"
           else
-            echo "ERROR: Linux binary not found"
-            find bazel-bin -name "scorex_linux_amd64" -type f
+            echo "ERROR: Linux binary not found at $LINUX_BIN"
             exit 1
           fi
 
-          # Copy macOS ARM64 binary
-          if [ -f "bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64" ]; then
-            cp bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64 artifacts/scorex-macos-arm64
+          if [ -f "$DARWIN_ARM64_BIN" ]; then
+            cp "$DARWIN_ARM64_BIN" artifacts/scorex-macos-arm64
             echo "✓ macOS ARM64 binary copied"
           else
             echo "ERROR: macOS ARM64 binary not found"
             exit 1
           fi
 
-          # Copy Windows binary
-          if [ -f "bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe" ]; then
-            cp bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe artifacts/scorex-windows-x86_64.exe
+          if [ -f "$WINDOWS_BIN" ]; then
+            cp "$WINDOWS_BIN" artifacts/scorex-windows-x86_64.exe
             echo "✓ Windows binary copied"
           else
             echo "ERROR: Windows binary not found"
