@@ -1,0 +1,47 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "templates",
+    srcs = ["fs.go"],
+    embedsrcs = [
+        "application/daal_app/BUILD.tmpl",
+        "application/daal_app/MODULE.bazel.tmpl",
+        "application/daal_app/point.bazelrc.tmpl",
+        "application/daal_app/point.bazelversion.tmpl",
+        "application/daal_app/point.devcontainer/devcontainer.json.tmpl",
+        "application/daal_app/point.devcontainer/prepare_workspace.sh.tmpl",
+        "application/daal_app/src/BUILD.tmpl",
+        "application/daal_app/src/hello_world_app.hpp.tmpl",
+        "application/daal_app/src/main.cpp.tmpl",
+        "application/feo_app/BUILD.tmpl",
+        "application/feo_app/MODULE.bazel.tmpl",
+        "application/feo_app/point.bazelrc.tmpl",
+        "application/feo_app/point.bazelversion.tmpl",
+        "application/feo_app/point.devcontainer/devcontainer.json.tmpl",
+        "application/feo_app/point.devcontainer/prepare_workspace.sh.tmpl",
+        "application/feo_app/src/BUILD.tmpl",
+        "application/feo_app/src/hello_world.rs.tmpl",
+        "module/BUILD.tmpl",
+        "module/MODULE.bazel.tmpl",
+        "module/point.bazelrc.tmpl",
+        "module/point.bazelversion.tmpl",
+        "module/point.devcontainer/devcontainer.json.tmpl",
+        "module/point.devcontainer/prepare_workspace.sh.tmpl",
+        "module/src/BUILD.tmpl",
+        "module/src/main.cpp.tmpl",
+    ],
+    importpath = "scorex/internal/templates",
+    visibility = ["//scorex:__subpackages__"],
+)

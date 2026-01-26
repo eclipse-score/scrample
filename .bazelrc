@@ -14,6 +14,8 @@
 common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
 common --registry=https://bcr.bazel.build
 
+# Build stamping for version info
+build --workspace_status_command=$(pwd)/bazel_stamp_vars.sh
 
 build:_common --@score_baselibs//score/mw/log/detail/flags:KUse_Stub_Implementation_Only=False
 build:_common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False

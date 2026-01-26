@@ -1,0 +1,93 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+# gazelle:prefix scorex
+exports_files(
+    [
+        "go.mod",
+        "go.sum",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "scorex_lib",
+    srcs = ["main.go"],
+    importpath = "scorex",
+    visibility = ["//visibility:private"],
+    deps = ["//scorex/cmd"],
+)
+
+go_binary(
+    name = "scorex",
+    embed = [":scorex_lib"],
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "scorex/cmd.Version": "{STABLE_VERSION}",
+        "scorex/cmd.GitCommit": "{STABLE_GIT_COMMIT}",
+        "scorex/cmd.BuildDate": "{STABLE_BUILD_DATE}",
+    },
+)
+
+go_binary(
+    name = "scorex_linux_amd64",
+    embed = [":scorex_lib"],
+    goarch = "amd64",
+    goos = "linux",
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "scorex/cmd.Version": "{STABLE_VERSION}",
+        "scorex/cmd.GitCommit": "{STABLE_GIT_COMMIT}",
+        "scorex/cmd.BuildDate": "{STABLE_BUILD_DATE}",
+    },
+)
+
+go_binary(
+    name = "scorex_darwin_arm64",
+    embed = [":scorex_lib"],
+    goarch = "arm64",
+    goos = "darwin",
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "scorex/cmd.Version": "{STABLE_VERSION}",
+        "scorex/cmd.GitCommit": "{STABLE_GIT_COMMIT}",
+        "scorex/cmd.BuildDate": "{STABLE_BUILD_DATE}",
+    },
+)
+
+go_binary(
+    name = "scorex_windows_amd64",
+    embed = [":scorex_lib"],
+    goarch = "amd64",
+    goos = "windows",
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "scorex/cmd.Version": "{STABLE_VERSION}",
+        "scorex/cmd.GitCommit": "{STABLE_GIT_COMMIT}",
+        "scorex/cmd.BuildDate": "{STABLE_BUILD_DATE}",
+    },
+)
+
+go_binary(
+    name = "scorex_darwin_amd64",
+    embed = [":scorex_lib"],
+    goarch = "amd64",
+    goos = "darwin",
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "scorex/cmd.Version": "{STABLE_VERSION}",
+        "scorex/cmd.GitCommit": "{STABLE_GIT_COMMIT}",
+        "scorex/cmd.BuildDate": "{STABLE_BUILD_DATE}",
+    },
+)

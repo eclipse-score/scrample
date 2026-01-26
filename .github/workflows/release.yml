@@ -1,0 +1,88 @@
+# *******************************************************************************
+# Copyright (c) 2025 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+name: Release scorex CLI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.9.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+
+      - name: Run Gazelle
+        run: bazel run //:gazelle
+
+      - name: Get version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          echo "Building version: ${VERSION}"
+
+      - name: Build scorex for Linux (x86_64)
+        run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex_linux_amd64
+
+      - name: Build scorex for macOS (Apple Silicon)
+        run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex_darwin_arm64
+
+      - name: Build scorex for macOS (Intel)
+        run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex_darwin_amd64
+
+      - name: Build scorex for Windows (x86_64)
+        run: VERSION=${{ steps.version.outputs.VERSION }} bazel build //scorex:scorex_windows_amd64
+
+      - name: Prepare release artifacts
+        run: |
+          mkdir -p release
+          cp bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64 release/scorex-linux-x86_64
+          cp bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64 release/scorex-macos-arm64
+          cp bazel-bin/scorex/scorex_darwin_amd64_/scorex_darwin_amd64 release/scorex-macos-x86_64
+          cp bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe release/scorex-windows-x86_64.exe
+
+          # Create compressed archives
+          cd release
+          tar -czf scorex-${{ steps.version.outputs.VERSION }}-linux-x86_64.tar.gz scorex-linux-x86_64
+          tar -czf scorex-${{ steps.version.outputs.VERSION }}-macos-arm64.tar.gz scorex-macos-arm64
+          tar -czf scorex-${{ steps.version.outputs.VERSION }}-macos-x86_64.tar.gz scorex-macos-x86_64
+          zip scorex-${{ steps.version.outputs.VERSION }}-windows-x86_64.zip scorex-windows-x86_64.exe
+
+          # Generate checksums
+          sha256sum *.tar.gz *.zip > checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release/scorex-${{ steps.version.outputs.VERSION }}-linux-x86_64.tar.gz
+            release/scorex-${{ steps.version.outputs.VERSION }}-macos-arm64.tar.gz
+            release/scorex-${{ steps.version.outputs.VERSION }}-macos-x86_64.tar.gz
+            release/scorex-${{ steps.version.outputs.VERSION }}-windows-x86_64.zip
+            release/checksums.txt
+          generate_release_notes: true
+          draft: false
+          prerelease: false

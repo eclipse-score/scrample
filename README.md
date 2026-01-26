@@ -144,9 +144,16 @@ scrample/
 ├── tests/
 │   ├── cpp/                      # C++ unit tests (GoogleTest)
 │   └── rust/                     # Rust tests
+├── scorex/                       # CLI tool for generating S-CORE projects
+│   ├── main.go                   # Entry point
+│   ├── cmd/                      # Cobra CLI commands
+│   ├── internal/                 # Internal packages
+│   └── README.md                 # scorex documentation
 ├── docs/                         # Sphinx documentation
 └── BUILD                         # Bazel build definitions
 ```
+
+**For information about the scorex CLI tool, see [scorex/README.md](scorex/README.md).**
 
 ## Development
 

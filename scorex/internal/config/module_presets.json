@@ -1,0 +1,18 @@
+{
+  "presets": [
+    {
+      "id": "feo-standard",
+      "label": "FEO app (standard)",
+      "projectType": "Application",
+      "appType": "feo",
+      "modules": ["score_baselibs", "score_communication", "score_docs_as_code", "score_feo"]
+    },
+    {
+      "id": "daal-standard",
+      "label": "DAAL app (standard)",
+      "projectType": "Application",
+      "appType": "daal",
+      "modules": ["score_baselibs", "score_communication", "score_inc_daal"]
+    }
+  ]
+}
