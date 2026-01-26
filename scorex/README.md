@@ -100,7 +100,7 @@ Download the appropriate binary for your platform from the [releases page](https
    ```bash
    # macOS/Linux
    tar -xzf scorex-VERSION-platform.tar.gz
-   
+
    # Windows (PowerShell)
    Expand-Archive scorex-VERSION-windows-x86_64.zip
    ```
@@ -109,7 +109,7 @@ Download the appropriate binary for your platform from the [releases page](https
    # macOS/Linux
    sudo mv scorex-platform /usr/local/bin/scorex
    sudo chmod +x /usr/local/bin/scorex
-   
+
    # Windows - move to a directory in your PATH or add the directory to PATH
    ```
 4. Verify installation:
