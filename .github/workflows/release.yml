@@ -84,7 +84,7 @@ jobs:
           ls -la bazel-bin/scorex/ || true
           echo "Checking for Linux binary:"
           ls -la bazel-bin/scorex/scorex_linux_amd64_/ || true
-          
+
           # Copy binaries with error checking
           if [ -f "bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64" ]; then
             cp bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64 release/scorex-linux-x86_64
@@ -93,21 +93,21 @@ jobs:
             find bazel-bin -name "scorex_linux_amd64" -type f
             exit 1
           fi
-          
+
           if [ -f "bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64" ]; then
             cp bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64 release/scorex-macos-arm64
           else
             echo "ERROR: macOS ARM64 binary not found"
             exit 1
           fi
-          
+
           if [ -f "bazel-bin/scorex/scorex_darwin_amd64_/scorex_darwin_amd64" ]; then
             cp bazel-bin/scorex/scorex_darwin_amd64_/scorex_darwin_amd64 release/scorex-macos-x86_64
           else
             echo "ERROR: macOS AMD64 binary not found"
             exit 1
           fi
-          
+
           if [ -f "bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe" ]; then
             cp bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe release/scorex-windows-x86_64.exe
           else

@@ -59,11 +59,11 @@ jobs:
       - name: Copy binaries to artifacts
         run: |
           mkdir -p artifacts
-          
+
           # Debug: Check bazel-bin structure
           echo "Checking bazel-bin structure:"
           ls -la bazel-bin/scorex/ || true
-          
+
           # Copy Linux binary
           if [ -f "bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64" ]; then
             cp bazel-bin/scorex/scorex_linux_amd64_/scorex_linux_amd64 artifacts/scorex-linux-x86_64
@@ -73,7 +73,7 @@ jobs:
             find bazel-bin -name "scorex_linux_amd64" -type f
             exit 1
           fi
-          
+
           # Copy macOS ARM64 binary
           if [ -f "bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64" ]; then
             cp bazel-bin/scorex/scorex_darwin_arm64_/scorex_darwin_arm64 artifacts/scorex-macos-arm64
@@ -82,7 +82,7 @@ jobs:
             echo "ERROR: macOS ARM64 binary not found"
             exit 1
           fi
-          
+
           # Copy Windows binary
           if [ -f "bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe" ]; then
             cp bazel-bin/scorex/scorex_windows_amd64_/scorex_windows_amd64.exe artifacts/scorex-windows-x86_64.exe
