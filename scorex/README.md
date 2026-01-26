@@ -80,38 +80,11 @@ The `init` command (see [scorex/cmd/init.go](scorex/cmd/init.go)) supports:
 
 ## Distribution
 
-The `scorex` CLI is distributed through multiple package managers for easy installation across different platforms.
+The `scorex` CLI can be distributed through multiple methods.
 
-### Installation Methods
+### Current Installation Methods
 
-#### macOS & Linux - Homebrew
-
-```bash
-# Add the tap (once a tap repository is created)
-brew tap eclipse-score/tap
-
-# Install scorex
-brew install scorex
-```
-
-#### Windows - Scoop
-
-```bash
-# Add the bucket (once a bucket repository is created)
-scoop bucket add eclipse-score https://github.com/eclipse-score/scoop-bucket
-
-# Install scorex
-scoop install scorex
-```
-
-#### Universal - Install Script
-
-**macOS & Linux:**
-```bash
-curl -sSL https://raw.githubusercontent.com/eclipse-score/score_scrample/main/scorex/distribution/install.sh | sh
-```
-
-#### Manual Download
+#### Manual Download (Available Now)
 
 Download the appropriate binary for your platform from the [releases page](https://github.com/eclipse-score/score_scrample/releases):
 
@@ -120,59 +93,88 @@ Download the appropriate binary for your platform from the [releases page](https
 - **macOS (Intel)**: `scorex-VERSION-macos-x86_64.tar.gz`
 - **Windows (x86_64)**: `scorex-VERSION-windows-x86_64.zip`
 
-Extract and move to a directory in your PATH.
+**Installation steps:**
+
+1. Download the appropriate archive for your platform
+2. Extract it:
+   ```bash
+   # macOS/Linux
+   tar -xzf scorex-VERSION-platform.tar.gz
+   
+   # Windows (PowerShell)
+   Expand-Archive scorex-VERSION-windows-x86_64.zip
+   ```
+3. Move the binary to a directory in your PATH:
+   ```bash
+   # macOS/Linux
+   sudo mv scorex-platform /usr/local/bin/scorex
+   sudo chmod +x /usr/local/bin/scorex
+   
+   # Windows - move to a directory in your PATH or add the directory to PATH
+   ```
+4. Verify installation:
+   ```bash
+   scorex version
+   ```
+
+#### Universal Install Script (Available Now)
+
+**macOS & Linux:**
+```bash
+curl -sSL https://raw.githubusercontent.com/eclipse-score/score_scrample/main/scorex/distribution/install.sh | sh
+```
+
+This script automatically:
+- Detects your OS and architecture
+- Downloads the correct binary
+- Installs it to `/usr/local/bin/scorex`
+- Makes it executable
+
+### Package Manager Installation
+
+#### macOS & Linux - Homebrew
+
+```bash
+# Install directly from this repository (no tap required)
+brew install https://raw.githubusercontent.com/eclipse-score/score_scrample/main/scorex/distribution/homebrew/scorex.rb
+```
+
+**Note**: The formula checksums need to be updated manually after each release. See the maintainer section below.
+
+#### Windows - Scoop
+
+```bash
+# Install directly from this repository (no bucket required)
+scoop install https://raw.githubusercontent.com/eclipse-score/score_scrample/main/scorex/distribution/scoop/scorex.json
+```
+
+**Note**: The manifest checksums need to be updated manually after each release. See the maintainer section below.
 
 ### For Maintainers
 
 #### Publishing a New Release
 
-1. Create and push a new version tag:
+1. **Create and push a version tag:**
    ```bash
    git tag v1.0.0
    git push origin v1.0.0
    ```
 
-2. GitHub Actions will automatically:
-   - Build binaries for all platforms
-   - Create compressed archives
-   - Generate checksums
-   - Create a GitHub release
+2. **GitHub Actions automatically:**
+   - Builds binaries for all platforms (Linux x86_64, macOS ARM64, macOS Intel, Windows x86_64)
+   - Creates compressed archives (.tar.gz for Unix, .zip for Windows)
+   - Generates `checksums.txt` with SHA256 hashes
+   - Creates a GitHub release with separate artifacts per platform
+   - Uploads artifacts: `scorex-linux`, `scorex-macos`, `scorex-windows`
 
-3. Update package manifests:
+3. **Update package manager manifests:**
+   - Download `checksums.txt` from the GitHub release
+   - Update `distribution/homebrew/scorex.rb`:
+     - Set `version` to the new version (without the `v` prefix)
+     - Update the three `sha256` values (Linux, macOS ARM64, macOS Intel) from checksums.txt
+   - Update `distribution/scoop/scorex.json`:
+     - Set `version` to the new version (without the `v` prefix)
+     - Update the `hash` value for Windows from checksums.txt
+   - Commit and push these changes to the main repository
 
-   **Homebrew Formula** (`distribution/homebrew/scorex.rb`):
-   - Update version number
-   - Update SHA256 checksums from `checksums.txt` in the release
-
-   **Scoop Manifest** (`distribution/scoop/scorex.json`):
-   - Update version number
-   - Update SHA256 hash from `checksums.txt`
-
-4. Commit and push updated manifests to respective repositories:
-   - Homebrew: Create/update tap repository at `eclipse-score/homebrew-tap`
-   - Scoop: Create/update bucket repository at `eclipse-score/scoop-bucket`
-
-#### Setting Up Package Repositories
-
-**Homebrew Tap:**
-1. Create repository: `https://github.com/eclipse-score/homebrew-tap`
-2. Add `distribution/homebrew/scorex.rb` to the repository root or `Formula/` directory
-3. Users can then install with: `brew install eclipse-score/tap/scorex`
-
-**Scoop Bucket:**
-1. Create repository: `https://github.com/eclipse-score/scoop-bucket`
-2. Add `distribution/scoop/scorex.json` to the `bucket/` directory
-3. Users can then install with: `scoop bucket add eclipse-score <repo-url>` then `scoop install scorex`
-
-#### Updating Checksums
-
-After each release, download `checksums.txt` from the GitHub release and update:
-
-```bash
-# Example for version 1.0.0
-curl -sL https://github.com/eclipse-score/score_scrample/releases/download/v1.0.0/checksums.txt
-
-# Update the SHA256 values in:
-# - distribution/homebrew/scorex.rb
-# - distribution/scoop/scorex.json
-```
+4. **Users can now install** via direct URLs, install script, or manual download

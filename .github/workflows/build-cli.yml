@@ -95,9 +95,23 @@ jobs:
             exit 1
           fi
 
-      - name: Upload CLI artifacts
+      - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: scorex-cli-${{ steps.version.outputs.VERSION }}
-          path: artifacts/
+          name: scorex-linux
+          path: artifacts/scorex-linux-x86_64
+          if-no-files-found: error
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorex-macos
+          path: artifacts/scorex-macos-arm64
+          if-no-files-found: error
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorex-windows
+          path: artifacts/scorex-windows-x86_64.exe
           if-no-files-found: error
