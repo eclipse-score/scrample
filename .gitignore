@@ -38,6 +38,7 @@
 bazel-*
 MODULE.bazel.lock
 user.bazelrc
+external
 
 # Ruff
 .ruff_cache
@@ -54,5 +55,12 @@ styles/
 
 # Python
 .venv
+venv/*
 __pycache__/
 /.coverage
+
+# Rust
+rust-project.json
+
+# vscode
+.vscode/
