@@ -20,6 +20,7 @@ type Options struct {
     BazelVersion string
     ProjectType  string // "Application" or "Module"
     AppType      string // "feo" or "daal"
+    Template     string // "simple" or "activities" (for feo apps)
 	IncludeDevcontainer bool
 }
 
@@ -54,6 +55,7 @@ func Run(opts Options) (*Result, error) {
         TargetDir:       targetDir,
         IsApplication:   opts.ProjectType == "Application",
         UseFeo:          opts.AppType == "feo",
+        Template:        opts.Template,
 		IncludeDevcontainer: opts.IncludeDevcontainer,
     }
 
@@ -63,7 +65,7 @@ func Run(opts Options) (*Result, error) {
 
     cfg := &config.ProjectConfig{
         ProjectName:  opts.Name,
-        Template:     templateFor(opts.ProjectType, opts.AppType),
+        Template:     templateFor(opts.ProjectType, opts.AppType, opts.Template),
         BazelVersion: opts.BazelVersion,
         KnownGoodURL: opts.KnownGoodURL,
         Modules:      opts.Modules,
@@ -79,13 +81,16 @@ func Run(opts Options) (*Result, error) {
     }, nil
 }
 
-func templateFor(projectType, appType string) string {
+func templateFor(projectType, appType, template string) string {
     if projectType != "Application" {
         return "module"
     }
     switch appType {
     case "feo":
-        return "feo_app"
+        if template == "activities" {
+            return "feo_app_activities"
+        }
+        return "feo_app_simple"
     case "daal", "":
         return "daal_app"
     default:

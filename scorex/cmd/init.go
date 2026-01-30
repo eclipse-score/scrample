@@ -37,6 +37,7 @@ type initOptions struct {
 	BazelVersion string
 	ProjectType  string // Application|Module
 	AppType      string // daal|feo
+	Template     string // simple|activities (for feo apps)
 	IncludeDevcontainer bool
 	ModulePreset string
 }
@@ -88,6 +89,7 @@ func init() {
 	initCmd.Flags().StringVar(&initOpts.BazelVersion, "bazel-version", config.DefaultBazelVersion, "bazel version to be used in project")
 	initCmd.Flags().StringVar(&initOpts.ProjectType, "project-type", initOpts.ProjectType, "project type: Application or Module")
 	initCmd.Flags().StringVar(&initOpts.AppType, "app-type", initOpts.AppType, "application type (for Application projects): daal or feo")
+	initCmd.Flags().StringVar(&initOpts.Template, "template", "simple", "template type for FEO apps: simple or activities")
 	initCmd.Flags().BoolVar(&initOpts.IncludeDevcontainer, "devcontainer", false, "include a .devcontainer folder")
 	initCmd.Flags().StringVar(&initOpts.ModulePreset, "module-preset", "", "use a predefined module preset (e.g. feo-standard, daal-standard)")
 }
@@ -101,6 +103,7 @@ func runInit(opts initOptions) error {
 		BazelVersion:        opts.BazelVersion,
 		ProjectType:         opts.ProjectType,
 		AppType:             opts.AppType,
+		Template:            opts.Template,
 		IncludeDevcontainer: opts.IncludeDevcontainer,
 	}
 
@@ -155,6 +158,28 @@ func runInitInteractive(opts *initOptions) error {
 			opts.AppType = "feo"
 		default:
 			return fmt.Errorf("invalid application type %q (use %s or %s)", v, feoChar, daalChar)
+		}
+
+		// template type (only for FEO apps)
+		if opts.AppType == "feo" {
+			simpleChar := "s"
+			activitiesChar := "a"
+
+			fmt.Printf("Template type (%s = simple, %s = activities): ", simpleChar, activitiesChar)
+			v, err := readLine(reader)
+			if err != nil {
+				return err
+			}
+			v = strings.ToLower(v)
+
+			switch v {
+			case "", simpleChar: // Default: simple
+				opts.Template = "simple"
+			case activitiesChar:
+				opts.Template = "activities"
+			default:
+				return fmt.Errorf("invalid template type %q (use %s or %s)", v, simpleChar, activitiesChar)
+			}
 		}
 	}
 
@@ -336,6 +361,17 @@ func validateInitOptions(opts initOptions) error {
 		}
 		if !slices.Contains(validAppTypes, opts.AppType) {
 			return fmt.Errorf("invalid --app-type %q (use daal or feo)", opts.AppType)
+		}
+
+		// Validate template for FEO apps
+		if opts.AppType == "feo" {
+			validTemplates := []string{"simple", "activities"}
+			if opts.Template == "" {
+				opts.Template = "simple" // Default
+			}
+			if !slices.Contains(validTemplates, opts.Template) {
+				return fmt.Errorf("invalid --template %q (use simple or activities)", opts.Template)
+			}
 		}
 	}
 

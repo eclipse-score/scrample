@@ -1,0 +1,64 @@
+/********************************************************************************
+ * Copyright (c) 2025 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Apache License Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ ********************************************************************************/
+
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+
+rust_library(
+    name = "{{.Name}}_lib",
+    srcs = glob(["**/*.rs"], exclude=["agents/**"]),
+    crate_name = "{{.Name | replace "-" "_"}}",
+    edition = "2021",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@crates//:feo",
+        "@crates//:feo-com",
+        "@crates//:feo-log",
+        "@crates//:feo-logger",
+        "@crates//:feo-time",
+        "@crates//:feo-tracing",
+        "@crates//:postcard",
+        "@crates//:serde",
+    ],
+)
+
+rust_binary(
+    name = "primary",
+    srcs = ["agents/primary.rs"],
+    edition = "2021",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":{{.Name}}_lib",
+        "@crates//:feo",
+        "@crates//:feo-com",
+        "@crates//:feo-log",
+        "@crates//:feo-logger",
+        "@crates//:feo-time",
+        "@crates//:feo-tracing",
+    ],
+)
+
+rust_binary(
+    name = "secondary",
+    srcs = ["agents/secondary.rs"],
+    edition = "2021",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":{{.Name}}_lib",
+        "@crates//:feo",
+        "@crates//:feo-com",
+        "@crates//:feo-log",
+        "@crates//:feo-logger",
+        "@crates//:feo-time",
+        "@crates//:feo-tracing",
+    ],
+)

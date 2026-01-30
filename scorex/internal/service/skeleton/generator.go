@@ -76,7 +76,12 @@ func Generate(props Properties) error {
 
     if props.IsApplication {
         if props.UseFeo {
-            templatePath = filepath.Join("application", "feo_app")
+            // Default to simple if no template specified
+            tmpl := props.Template
+            if tmpl == "" {
+                tmpl = "simple"
+            }
+            templatePath = filepath.Join("application", "feo_app_"+tmpl)
         } else {
             templatePath = filepath.Join("application", "daal_app")
         }

@@ -1,0 +1,74 @@
+// *******************************************************************************
+// Copyright (c) 2026 Contributors to the Eclipse Foundation
+//
+// See the NOTICE file(s) distributed with this work for additional
+// information regarding copyright ownership.
+//
+// This program and the accompanying materials are made available under the
+// terms of the Apache License Version 2.0 which is available at
+// <https://www.apache.org/licenses/LICENSE-2.0>
+//
+// SPDX-License-Identifier: Apache-2.0
+// *******************************************************************************
+
+use crate::activities::common::*;
+
+/// Example activity
+///
+/// This activity demonstrates basic FEO activity structure.
+/// It produces an [ExampleMessage] on each step.
+#[derive(Debug)]
+pub struct ExampleActivity {
+    activity_id: ActivityId,
+    output: Box<dyn ActivityOutput<ExampleMessage>>,
+    counter: u32,
+}
+
+impl ExampleActivity {
+    pub fn build(activity_id: ActivityId, output_topic: &str) -> Box<dyn Activity> {
+        Box::new(Self {
+            activity_id,
+            output: activity_output(output_topic),
+            counter: 0,
+        })
+    }
+
+    fn generate_message(&mut self) -> ExampleMessage {
+        self.counter += 1;
+        ExampleMessage {
+            value: self.counter,
+            timestamp: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_millis() as u64,
+        }
+    }
+}
+
+impl Activity for ExampleActivity {
+    fn id(&self) -> ActivityId {
+        self.activity_id
+    }
+
+    #[instrument(name = "ExampleActivity startup")]
+    fn startup(&mut self) {
+        debug!("ExampleActivity startup");
+    }
+
+    #[instrument(name = "ExampleActivity")]
+    fn step(&mut self) {
+        debug!("Stepping ExampleActivity");
+
+        if let Ok(msg_writer) = self.output.write_uninit() {
+            let message = self.generate_message();
+            debug!("Sending message: {message:?}");
+            let msg_writer = msg_writer.write_payload(message);
+            msg_writer.send().unwrap();
+        }
+    }
+
+    #[instrument(name = "ExampleActivity shutdown")]
+    fn shutdown(&mut self) {
+        debug!("ExampleActivity shutdown");
+    }
+}

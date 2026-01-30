@@ -64,3 +64,4 @@ rust-project.json
 
 # vscode
 .vscode/
+.DS_Store

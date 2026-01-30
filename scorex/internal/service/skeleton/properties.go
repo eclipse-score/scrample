@@ -10,5 +10,6 @@ type Properties struct {
     TargetDir       string
     IsApplication   bool
     UseFeo          bool
+    Template        string // "simple" or "activities" for feo apps
 	IncludeDevcontainer bool
 }
