@@ -80,11 +80,32 @@ The `init` command (see [scorex/cmd/init.go](scorex/cmd/init.go)) supports:
 
 ## Distribution
 
-The `scorex` CLI can be distributed through multiple methods.
+### Installation Methods
 
-### Current Installation Methods
+#### Install Script (Recommended)
 
-#### Manual Download (Available Now)
+**macOS & Linux:**
+```bash
+curl -sSL https://raw.githubusercontent.com/eclipse-score/score_scrample/main/scorex/distribution/install.sh | sh
+```
+
+**Note**: Requires a published release. If no releases exist yet, use manual installation below.
+
+This script automatically:
+- Detects your OS and architecture
+- Downloads the correct binary from the latest release
+- Installs it to `$HOME/.local/bin/scorex` (customizable via `SCOREX_INSTALL_DIR`)
+- Makes it executable
+- Removes macOS quarantine attribute automatically
+
+**Add to PATH** (if not already):
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Add this to your `~/.zshrc` or `~/.bashrc` to make it permanent.
+
+#### Manual Download
 
 Download the appropriate binary for your platform from the [releases page](https://github.com/eclipse-score/score_scrample/releases):
 
@@ -112,45 +133,53 @@ Download the appropriate binary for your platform from the [releases page](https
 
    # Windows - move to a directory in your PATH or add the directory to PATH
    ```
-4. Verify installation:
+4. **macOS only**: Remove the quarantine attribute (required for unsigned binaries):
+   ```bash
+   sudo xattr -d com.apple.quarantine /usr/local/bin/scorex
+   ```
+   
+   Alternatively, on first run, right-click the binary in Finder and select "Open" to bypass Gatekeeper.
+
+5. Verify installation:
    ```bash
    scorex version
    ```
 
-#### Universal Install Script (Available Now)
-
-**macOS & Linux:**
-```bash
-curl -sSL https://raw.githubusercontent.com/eclipse-score/score_scrample/main/scorex/distribution/install.sh | sh
-```
-
-This script automatically:
-- Detects your OS and architecture
-- Downloads the correct binary
-- Installs it to `/usr/local/bin/scorex`
-- Makes it executable
-
-### Package Manager Installation
-
-#### macOS & Linux - Homebrew
-
-```bash
-# Install directly from this repository (no tap required)
-brew install https://raw.githubusercontent.com/eclipse-score/score_scrample/main/scorex/distribution/homebrew/scorex.rb
-```
-
-**Note**: The formula checksums need to be updated manually after each release. See the maintainer section below.
-
-#### Windows - Scoop
-
-```bash
-# Install directly from this repository (no bucket required)
-scoop install https://raw.githubusercontent.com/eclipse-score/score_scrample/main/scorex/distribution/scoop/scorex.json
-```
-
-**Note**: The manifest checksums need to be updated manually after each release. See the maintainer section below.
+**Note for macOS users**: The binaries are currently unsigned. You may see a security warning. Use the `xattr` command above or right-click > Open to bypass Gatekeeper.
 
 ### For Maintainers
+
+#### Testing the Release Flow in PRs
+
+The release workflow runs on PRs and creates artifacts. To test the binaries:
+
+1. **Go to the PR's Actions tab** and find the latest "Release scorex CLI" workflow run
+2. **Download the artifact** for your platform:
+   - `scorex-linux` - Contains Linux binary
+   - `scorex-macos` - Contains macOS binaries (ARM64 + Intel)
+   - `scorex-windows` - Contains Windows binary
+
+3. **Extract and test locally**:
+   ```bash
+   # Download artifact from GitHub Actions UI
+   unzip scorex-macos.zip
+   
+   # Extract the tar.gz
+   tar -xzf scorex-pr-*-macos-arm64.tar.gz
+   
+   # Make executable and remove quarantine (macOS)
+   chmod +x scorex-macos-arm64
+   xattr -d com.apple.quarantine scorex-macos-arm64 2>/dev/null || true
+   
+   # Test it
+   ./scorex-macos-arm64 --help
+   ./scorex-macos-arm64 version
+   
+   # Test creating a project
+   ./scorex-macos-arm64 init --name test_app --dir /tmp/test_scorex
+   ```
+
+**Note**: The install script cannot be tested in PRs since it requires a published GitHub release.
 
 #### Publishing a New Release
 
@@ -164,17 +193,7 @@ scoop install https://raw.githubusercontent.com/eclipse-score/score_scrample/mai
    - Builds binaries for all platforms (Linux x86_64, macOS ARM64, macOS Intel, Windows x86_64)
    - Creates compressed archives (.tar.gz for Unix, .zip for Windows)
    - Generates `checksums.txt` with SHA256 hashes
-   - Creates a GitHub release with separate artifacts per platform
-   - Uploads artifacts: `scorex-linux`, `scorex-macos`, `scorex-windows`
+   - Creates a GitHub release with all artifacts
+   - For PRs and manual runs: Uploads separate artifacts per platform (`scorex-linux`, `scorex-macos`, `scorex-windows`)
 
-3. **Update package manager manifests:**
-   - Download `checksums.txt` from the GitHub release
-   - Update `distribution/homebrew/scorex.rb`:
-     - Set `version` to the new version (without the `v` prefix)
-     - Update the three `sha256` values (Linux, macOS ARM64, macOS Intel) from checksums.txt
-   - Update `distribution/scoop/scorex.json`:
-     - Set `version` to the new version (without the `v` prefix)
-     - Update the `hash` value for Windows from checksums.txt
-   - Commit and push these changes to the main repository
-
-4. **Users can now install** via direct URLs, install script, or manual download
+3. **Users can install** via the install script or manual download from the releases page
