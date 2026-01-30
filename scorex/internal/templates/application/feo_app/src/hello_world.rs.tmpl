@@ -1,0 +1,95 @@
+// *******************************************************************************
+// Copyright (c) 2026 Contributors to the Eclipse Foundation
+//
+// See the NOTICE file(s) distributed with this work for additional
+// information regarding copyright ownership.
+//
+// This program and the accompanying materials are made available under the
+// terms of the Apache License Version 2.0 which is available at
+// <https://www.apache.org/licenses/LICENSE-2.0>
+//
+// SPDX-License-Identifier: Apache-2.0
+// *******************************************************************************
+
+use feo::agent::com_init::initialize_com_primary;
+use feo::agent::relayed::primary::{Primary, PrimaryConfig};
+use feo::agent::NodeAddress;
+use feo::ids::{ActivityId, AgentId, WorkerId};
+use feo_log::{info, LevelFilter};
+use feo_time::Duration;
+use std::collections::HashMap;
+
+// TODO: Replace with your application's activity configuration module
+// use {{.Name}}::activities::application_config::{
+//     activity_dependencies, agent_assignments, agent_assignments_ids, topic_dependencies,
+//     worker_agent_map, BIND_ADDR, BIND_ADDR2, COM_BACKEND, MAX_ADDITIONAL_SUBSCRIBERS,
+// };
+
+const AGENT_ID: AgentId = AgentId::new(100);
+const DEFAULT_FEO_CYCLE_TIME: Duration = Duration::from_secs(5);
+
+/// Primary agent for the {{.Name}} FEO application.
+fn main() {
+    feo_logger::init(LevelFilter::Debug, true, true);
+    feo_tracing::init(feo_tracing::LevelFilter::TRACE);
+
+    info!("Starting primary agent {AGENT_ID}");
+
+    // TODO: Uncomment and configure after implementing application_config module
+    // Initialize topics. Make it alive until application runs.
+    // let _topic_guards = initialize_com_primary(
+    //     COM_BACKEND,
+    //     AGENT_ID,
+    //     topic_dependencies(),
+    //     &agent_assignments_ids(),
+    //     MAX_ADDITIONAL_SUBSCRIBERS,
+    // );
+
+    // let mut primary_agent = Primary::new(generate_primary_config());
+    // primary_agent.run().unwrap()
+
+    info!(
+        "Hello FEO from primary agent {AGENT_ID}, default cycle time = {:?}",
+        DEFAULT_FEO_CYCLE_TIME
+    );
+}
+
+fn get_cycle_time_from_args() -> Duration {
+    let args: Vec<String> = std::env::args().collect();
+
+    args.get(1)
+        .and_then(|argument| argument.parse::<u64>().ok())
+        .map(Duration::from_millis)
+        .unwrap_or(DEFAULT_FEO_CYCLE_TIME)
+}
+
+// TODO: Uncomment and configure after implementing application_config module
+// fn generate_primary_config() -> PrimaryConfig {
+//     let activity_worker_map: HashMap<ActivityId, WorkerId> = agent_assignments()
+//         .values()
+//         .flat_map(|worker_activity_builder| {
+//             worker_activity_builder
+//                 .iter()
+//                 .flat_map(move |(worker_id, activity_id_builder_vec)| {
+//                     activity_id_builder_vec
+//                         .iter()
+//                         .map(|(activity_id, _)| (*activity_id, *worker_id))
+//                 })
+//         })
+//         .collect();
+//
+//     let with_no_recorders: Vec<AgentId> = vec![];
+//
+//     PrimaryConfig {
+//         cycle_time: get_cycle_time_from_args(),
+//         activity_dependencies: activity_dependencies(),
+//         recorder_ids: with_no_recorders,
+//         worker_assignments: agent_assignments().remove(&AGENT_ID).unwrap(),
+//         timeout: Duration::from_secs(10),
+//         bind_address_senders: NodeAddress::Tcp(BIND_ADDR),
+//         bind_address_receivers: NodeAddress::Tcp(BIND_ADDR2),
+//         id: AGENT_ID,
+//         worker_agent_map: worker_agent_map(),
+//         activity_worker_map,
+//     }
+// }
