@@ -75,6 +75,12 @@ bazel_dep(name = "score_baselibs", version = "0.1.3")
 bazel_dep(name = "score_communication", version = "0.1.1")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "score_bazel_platforms", version = "0.0.2")
+bazel_dep(name = "score_logging", version = "0.0.3")
+git_override(
+    module_name = "score_logging",
+    commit = "9ed6a88cab10a81bf6b0813712cbd7b9fc7e44c5",
+    remote = "https://github.com/eclipse-score/logging.git",
+)
 
 # TRLC dependency for requirements traceability
 bazel_dep(name = "trlc", version = "0.0.0")

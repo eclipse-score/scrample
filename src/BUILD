@@ -22,7 +22,7 @@ cc_binary(
         ":sample_sender_receiver",
         "@boost.program_options",
         "@score_baselibs//score/language/futurecpp",
-        "@score_baselibs//score/mw/log",
+        "@score_logging//score/mw/log",
         "@score_communication//score/mw/com",
     ],
 )
@@ -37,7 +37,7 @@ cc_library(
     ],
     deps = [
         ":datatype",
-        "@score_baselibs//score/mw/log",
+        "@score_baselibs//score/mw/log:frontend",
         "@score_communication//score/mw/com",
     ],
 )
