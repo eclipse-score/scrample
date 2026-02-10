@@ -25,11 +25,7 @@ pub struct SceneRender {
 }
 
 impl SceneRender {
-    pub fn build(
-        activity_id: ActivityId,
-        image_topic: &str,
-        scene_topic: &str,
-    ) -> Box<dyn Activity> {
+    pub fn build(activity_id: ActivityId, image_topic: &str, scene_topic: &str) -> Box<dyn Activity> {
         Box::new(Self {
             activity_id,
             input_image: activity_input(image_topic),

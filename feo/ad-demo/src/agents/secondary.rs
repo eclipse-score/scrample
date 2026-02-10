@@ -12,8 +12,7 @@
 // *******************************************************************************
 
 use ad_demo::activities::application_config::{
-    agent_assignments, agent_assignments_ids, topic_dependencies, BIND_ADDR, BIND_ADDR2,
-    COM_BACKEND,
+    agent_assignments, agent_assignments_ids, topic_dependencies, BIND_ADDR, BIND_ADDR2, COM_BACKEND,
 };
 use core::time::Duration;
 use feo::agent::com_init::initialize_com_secondary;
@@ -48,8 +47,7 @@ fn main() {
         .collect();
 
     // Initialize topics. Make it alive until application runs.
-    let _topic_guards =
-        initialize_com_secondary(COM_BACKEND, topic_dependencies(), &local_activities);
+    let _topic_guards = initialize_com_secondary(COM_BACKEND, topic_dependencies(), &local_activities);
 
     info!("Starting secondary agent {}", secondary_agent_id);
 
