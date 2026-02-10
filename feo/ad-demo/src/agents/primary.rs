@@ -20,8 +20,8 @@ use feo_time::Duration;
 use std::collections::HashMap;
 
 use ad_demo::activities::application_config::{
-    activity_dependencies, agent_assignments, agent_assignments_ids, topic_dependencies,
-    worker_agent_map, BIND_ADDR, BIND_ADDR2, COM_BACKEND, MAX_ADDITIONAL_SUBSCRIBERS,
+    activity_dependencies, agent_assignments, agent_assignments_ids, topic_dependencies, worker_agent_map, BIND_ADDR,
+    BIND_ADDR2, COM_BACKEND, MAX_ADDITIONAL_SUBSCRIBERS,
 };
 
 const AGENT_ID: AgentId = AgentId::new(100);

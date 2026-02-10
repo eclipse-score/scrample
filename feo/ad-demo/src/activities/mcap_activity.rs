@@ -48,11 +48,9 @@ impl Mcap {
     }
 
     pub fn build(activity_id: ActivityId) -> Box<dyn Activity> {
-        let mcap_to_map = Self::map_mcap("feo/ad-demo/src/assets/gps_route.mcap")
-            .expect("Could not open MCAP file");
+        let mcap_to_map = Self::map_mcap("feo/ad-demo/src/assets/gps_route.mcap").expect("Could not open MCAP file");
         let static_slice: &'static [u8] = Box::leak(mcap_to_map.to_vec().into_boxed_slice());
-        let message_stream =
-            MessageStream::new(static_slice).expect("Failed to create MessageStream");
+        let message_stream = MessageStream::new(static_slice).expect("Failed to create MessageStream");
         Box::new(Self {
             activity_id,
             message_stream,
@@ -62,21 +60,20 @@ impl Mcap {
     fn get_single_msg(&mut self) -> Result<Option<Value>> {
         match self.message_stream.next() {
             Some(Ok(message)) => {
-                let data_json = serde_json::from_slice(&message.data)
-                    .context("Failed to convert msg data as JSON")?;
+                let data_json = serde_json::from_slice(&message.data).context("Failed to convert msg data as JSON")?;
 
                 debug!("single mcap message data: {}", data_json);
 
                 Ok(Some(data_json))
-            }
+            },
             Some(Err(e)) => {
                 debug!("Error reading MCAP message: {}", e);
                 Ok(None)
-            }
+            },
             None => {
                 debug!("No more messages in MCAP file");
                 Ok(None)
-            }
+            },
         }
     }
 
@@ -112,8 +109,7 @@ impl Activity for Mcap {
         debug!("Stepping Mcap");
 
         if let Ok(Some(mcap_msg_json)) = self.get_single_msg() {
-            let compact_json =
-                serde_json::to_string(&mcap_msg_json).expect("failed to stringify Json");
+            let compact_json = serde_json::to_string(&mcap_msg_json).expect("failed to stringify Json");
 
             debug!("Read Mcap message: {compact_json:?}");
             self.send_tcp_msg(&compact_json);

@@ -51,10 +51,7 @@ pub fn agent_assignments() -> HashMap<AgentId, Vec<(WorkerId, Vec<ActivityIdAndB
     let worker_40: WorkerAssignment = (
         40.into(),
         vec![
-            (
-                0.into(),
-                Box::new(|id| Camera::build(id, TOPIC_CAMERA_FRONT)),
-            ),
+            (0.into(), Box::new(|id| Camera::build(id, TOPIC_CAMERA_FRONT))),
             (
                 1.into(),
                 Box::new(|id| SceneRender::build(id, TOPIC_CAMERA_FRONT, TOPIC_INFERRED_SCENE)),
@@ -71,11 +68,7 @@ pub fn agent_assignments() -> HashMap<AgentId, Vec<(WorkerId, Vec<ActivityIdAndB
 }
 
 pub fn activity_dependencies() -> ActivityDependencies {
-    let dependencies = [
-        (0.into(), vec![]),
-        (1.into(), vec![0.into()]),
-        (2.into(), vec![]),
-    ];
+    let dependencies = [(0.into(), vec![]), (1.into(), vec![0.into()]), (2.into(), vec![])];
 
     dependencies.into()
 }
@@ -84,10 +77,7 @@ pub fn topic_dependencies<'a>() -> Vec<TopicSpecification<'a>> {
     use Direction::*;
 
     vec![
-        TopicSpecification::new::<CameraImage>(
-            TOPIC_CAMERA_FRONT,
-            vec![(0.into(), Outgoing), (1.into(), Incoming)],
-        ),
+        TopicSpecification::new::<CameraImage>(TOPIC_CAMERA_FRONT, vec![(0.into(), Outgoing), (1.into(), Incoming)]),
         TopicSpecification::new::<Scene>(TOPIC_INFERRED_SCENE, vec![(1.into(), Outgoing)]),
     ]
 }
