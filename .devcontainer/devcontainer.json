@@ -1,4 +1,16 @@
 {
     "name": "eclipse-s-core",
-    "image": "ghcr.io/eclipse-score/devcontainer:v1.1.0"
-}
+    "image": "ghcr.io/eclipse-score/devcontainer:v1.2.0",
+    "runArgs": [
+        "--dns=8.8.8.8",
+        "--dns=8.8.4.4",
+        "--privileged"
+    ],
+    "capAdd": [
+        "SYS_PTRACE"
+    ]    // NOTE: APE (Actually Portable Executable) binaries used by Bazel may not work
+    // in Docker Desktop on macOS/Windows due to linuxkit kernel incompatibility.
+    // If you experience "assimilate" segfaults:
+    // - Use WSL2 with native Docker (not Docker Desktop)
+    // - Run Bazel on the host system instead
+    // - Rely on CI for format checks}
