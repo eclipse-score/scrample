@@ -4,5 +4,9 @@ filegroup(
     srcs = [
         "Cargo.lock",
     ],
+    tags = ["no-clippy"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
     visibility = ["//visibility:public"],
 )

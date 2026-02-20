@@ -49,12 +49,12 @@ SCRAMPLE consists of two operational modes:
 
 ### Standard Build (Host Platform)
 ```bash
-bazel build --config=host //src:scrample
+bazel build --config=host //score/src:scrample
 ```
 
 ### QNX Cross-Compilation
 ```bash
-bazel build --config=x86_64-qnx //src:scrample
+bazel build --config=x86_64-qnx //score/src:scrample
 ```
 
 ### Build All Tests
@@ -192,12 +192,12 @@ The project includes example tests demonstrating the testing infrastructure:
 
 Run all tests:
 ```bash
-bazel test --config=host //tests/...
+bazel test --config=host //score/tests/...
 ```
 
 Run all tests and format checks:
 ```bash
-bazel test --config=host //tests/... //:format.check
+bazel test --config=host //score/tests/... //:format.check
 ```
 
 ## Contributing

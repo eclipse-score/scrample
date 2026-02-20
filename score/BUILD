@@ -10,9 +10,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_rust//rust:defs.bzl", "rust_test")
 
-rust_test(
-    name = "rust_hello_test",
-    srcs = ["test_main.rs"],
-)
+# Scrample - Score Example Application
+# This directory contains the main source code and tests

@@ -27,9 +27,8 @@ copyright_checker(
     name = "copyright",
     srcs = [
         "feo/ad-demo",
+        "score",
         "scorex",
-        "src",
-        "tests",
         "//:BUILD",
         "//:MODULE.bazel",
     ],
