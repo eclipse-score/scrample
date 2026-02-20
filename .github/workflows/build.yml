@@ -13,19 +13,23 @@
 
 name: Scrample Build
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
 jobs:
   qnx-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        bazel-config: [x86_64-qnx, aarch64-qnx]
     uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@main
     permissions:
       contents: read
       pull-requests: read
     with:
-      bazel-target: "//src:scrample"
-      bazel-config: "x86_64-qnx"
+      bazel-target: "//score/..."
+      bazel-config: ${{ matrix.bazel-config }}
       credential-helper: ".github/tools/qnx_credential_helper.py"
       environment-name: "workflow-approval"
     secrets:

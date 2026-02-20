@@ -31,6 +31,9 @@ rust_library(
     ],
     crate_name = "ad_demo",
     data = ["src/assets/gps_route.mcap"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "@ad-demo-local-crates//:camino",
@@ -56,6 +59,9 @@ rust_binary(
     srcs = [
         "src/agents/primary.rs",
     ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         ":activities_lib",
@@ -71,6 +77,9 @@ rust_binary(
     name = "agent_secondary",
     srcs = [
         "src/agents/secondary.rs",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
     ],
     visibility = ["//visibility:public"],
     deps = [

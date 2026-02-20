@@ -14,6 +14,94 @@
 common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
 common --registry=https://bcr.bazel.build
 
+build --java_language_version=17
+build --tool_java_language_version=17
+build --java_runtime_version=remotejdk_17
+build --tool_java_runtime_version=remotejdk_17
+build --credential_helper="*.qnx.com=%workspace%/.github/tools/qnx_credential_helper.py"
+
+#Baselibs flags
+build --@score_baselibs//score/json:base_library=nlohmann
+build --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
+
+# Clippy linting (enabled by default)
+build --aspects=@score_rust_policies//clippy:linters.bzl%clippy_strict
+build --output_groups=+rules_lint_human
+build:lint --@aspect_rules_lint//lint:fail_on_violation=true
+
+test --test_output=errors
+
+
+# Target configuration for CPU:x86-64|OS:Linux build (do not use it in case of system toolchains!)
+#build:x86_64-linux --config=_bl_stub
+#build:x86_64-linux --config=_bl_toolchain_common
+build:x86_64-linux --config=_common
+build:x86_64-linux --platforms=@score_bazel_platforms//:x86_64-linux-gcc_12.2.0-posix
+build:x86_64-linux --extra_toolchains=@score_gcc_x86_64_toolchain//:x86_64-linux-gcc_12.2.0-posix
+build:x86_64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
+test:x86_64-linux --config=_common
+
+# Target configuration for CPU:AArch64|OS:Linux build (do not use it in case of system toolchains!)
+#build:aarch64-linux --config=_bl_stub
+#build:aarch64-linux --config=_bl_toolchain_common
+build:aarch64-linux --config=_common
+build:aarch64-linux --platforms=@score_bazel_platforms//:aarch64-linux-gcc_12.2.0-posix
+build:aarch64-linux --extra_toolchains=@score_gcc_aarch64_toolchain//:aarch64-linux-gcc_12.2.0-posix
+test:aarch64-linux --config=_common
+
+
+# Target configuration for CPU:x86-64|OS:QNX build (do not use it in case of system toolchains!)
+#build:x86_64-qnx --config=_bl_stub
+#build:x86_64-qnx --config=_bl_toolchain_common
+build:x86_64-qnx --config=_common
+build:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
+build:x86_64-qnx --extra_toolchains=@score_qcc_x86_64_toolchain//:x86_64-qnx-sdp_8.0.0-posix
+test:x86_64-qnx --config=_common
+
+# Target configuration for CPU:AArch64|OS:QNX build (do not use it in case of system toolchains!)
+#build:aarch64-qnx --config=_bl_stub
+#build:aarch64-qnx --config=_bl_toolchain_common
+build:aarch64-qnx --config=_common
+build:aarch64-qnx --incompatible_strict_action_env
+build:aarch64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
+build:aarch64-qnx --extra_toolchains=@score_qcc_aarch64_toolchain//:aarch64-qnx-sdp_8.0.0-posix
+test:aarch64-qnx --config=_common
+
+# Target configuration for CPU:AArch64|OS:QNX build with Ferrocene Rust toolchain (do not use it in case of system toolchains!)
+build:per-arm64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_nto_qnx800
+
+coverage --features=coverage
+coverage --combined_report=lcov
+coverage --cache_test_results=no
+
+# Sanitizer configuration for C++
+test:asan_ubsan_lsan --features=asan
+test:asan_ubsan_lsan --features=ubsan
+test:asan_ubsan_lsan --features=lsan
+test:asan_ubsan_lsan --copt -g3
+test:asan_ubsan_lsan --platform_suffix=asan_ubsan_lsan
+test:asan_ubsan_lsan --test_env=ASAN_OPTIONS="exitcode=55 allow_addr2line=1 verbosity=1 coverage=1 check_initialization_order=1 detect_stack_use_after_return=1 print_stats=1 halt_on_error=1 allocator_may_return_null=1 detect_leaks=1"
+test:asan_ubsan_lsan --test_env=UBSAN_OPTIONS="exitcode=55 allow_addr2line=1 verbosity=1 coverage=1 print_stacktrace=1 halt_on_error=1"
+
+# -------------------------------------------------------------------------------
+# Ferrocene Rust coverage config
+# -------------------------------------------------------------------------------
+build:ferrocene-coverage --@rules_rust//rust/settings:extra_rustc_flag=-Cinstrument-coverage
+build:ferrocene-coverage --@rules_rust//rust/settings:extra_rustc_flag=-Clink-dead-code
+build:ferrocene-coverage --@rules_rust//rust/settings:extra_rustc_flag=-Ccodegen-units=1
+build:ferrocene-coverage --@rules_rust//rust/settings:extra_rustc_flag=-Cdebuginfo=2
+build:ferrocene-coverage --@rules_rust//rust/settings:extra_exec_rustc_flag=-Cinstrument-coverage
+build:ferrocene-coverage --@rules_rust//rust/settings:extra_exec_rustc_flag=-Clink-dead-code
+build:ferrocene-coverage --@rules_rust//rust/settings:extra_exec_rustc_flag=-Ccodegen-units=1
+build:ferrocene-coverage --@rules_rust//rust/settings:extra_exec_rustc_flag=-Cdebuginfo=2
+test:ferrocene-coverage --run_under=@score_tooling//coverage:llvm_profile_wrapper
+
+# -------------------------------------------------------------------------------
+# Import local user workspace file, if exists
+# -------------------------------------------------------------------------------
+try-import %workspace%/user.bazelrc
+
+
 # Build stamping for version info
 build --workspace_status_command=$(pwd)/bazel_stamp_vars.sh
 
@@ -26,10 +114,3 @@ build:_common --cxxopt=-Wno-error=deprecated-declarations
 
 # Host platform build configuration
 build:host --config=_common
-
-build:x86_64-qnx --config=_common
-build:x86_64-qnx --noexperimental_merged_skyframe_analysis_execution
-build:x86_64-qnx --incompatible_enable_cc_toolchain_resolution
-build:x86_64-qnx --incompatible_strict_action_env
-build:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx
-build:x86_64-qnx --extra_toolchains=@toolchains_qnx_qcc//:qcc_x86_64

@@ -18,12 +18,22 @@ compile_pip_requirements(
     name = "requirements",
     requirements_in = "requirements.in",
     requirements_txt = "requirements_lock.txt",
+    tags = [
+        "manual",
+        "no-clippy",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
 )
 
 py_binary(
     name = "foxglove_ws_server",
     srcs = ["foxglove_ws_server.py"],
     main = "foxglove_ws_server.py",
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         requirement("foxglove_websocket"),
