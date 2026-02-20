@@ -35,33 +35,37 @@ test --test_output=errors
 # Target configuration for CPU:x86-64|OS:Linux build (do not use it in case of system toolchains!)
 #build:sc-x86_64-linux --config=_bl_stub
 #build:sc-x86_64-linux --config=_bl_toolchain_common
+build:sc-x86_64-linux --config=_common
 build:sc-x86_64-linux --platforms=@score_bazel_platforms//:x86_64-linux-gcc_12.2.0-posix
 build:sc-x86_64-linux --extra_toolchains=@score_gcc_x86_64_toolchain//:x86_64-linux-gcc_12.2.0-posix
 build:sc-x86_64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
-test:sc-x86_64-linux --config=_bl_common
+test:sc-x86_64-linux --config=_common
 
 # Target configuration for CPU:AArch64|OS:Linux build (do not use it in case of system toolchains!)
 #build:sc-aarch64-linux --config=_bl_stub
 #build:sc-aarch64-linux --config=_bl_toolchain_common
+build:sc-aarch64-linux --config=_common
 build:sc-aarch64-linux --platforms=@score_bazel_platforms//:aarch64-linux-gcc_12.2.0-posix
 build:sc-aarch64-linux --extra_toolchains=@score_gcc_aarch64_toolchain//:aarch64-linux-gcc_12.2.0-posix
-test:sc-aarch64-linux --config=_bl_common
+test:sc-aarch64-linux --config=_common
 
 
 # Target configuration for CPU:x86-64|OS:QNX build (do not use it in case of system toolchains!)
 #build:sc-x86_64-qnx --config=_bl_stub
 #build:sc-x86_64-qnx --config=_bl_toolchain_common
+build:sc-x86_64-qnx --config=_common
 build:sc-x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
 build:sc-x86_64-qnx --extra_toolchains=@score_qcc_x86_64_toolchain//:x86_64-qnx-sdp_8.0.0-posix
-test:sc-x86_64-qnx --config=_bl_common
+test:sc-x86_64-qnx --config=_common
 
 # Target configuration for CPU:AArch64|OS:QNX build (do not use it in case of system toolchains!)
 #build:sc-aarch64-qnx --config=_bl_stub
 #build:sc-aarch64-qnx --config=_bl_toolchain_common
+build:sc-aarch64-qnx --config=_common
 build:sc-aarch64-qnx --incompatible_strict_action_env
 build:sc-aarch64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
 build:sc-aarch64-qnx --extra_toolchains=@score_qcc_aarch64_toolchain//:aarch64-qnx-sdp_8.0.0-posix
-test:sc-aarch64-qnx --config=_bl_common
+test:sc-aarch64-qnx --config=_common
 
 # Target configuration for CPU:AArch64|OS:QNX build with Ferrocene Rust toolchain (do not use it in case of system toolchains!)
 build:per-arm64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_nto_qnx800

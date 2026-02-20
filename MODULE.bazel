@@ -111,6 +111,11 @@ bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 #docs-as-code
 bazel_dep(name = "score_process", version = "1.4.3")
 bazel_dep(name = "score_baselibs", version = "0.2.4")
+git_override(
+    module_name = "score_baselibs",
+    commit = "6951cd2a3045fb7a053acf203833a17704c22ccf",
+    remote = "https://github.com/eclipse-score/baselibs.git",
+)
 bazel_dep(name = "score_communication", version = "0.1.2")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "score_bazel_platforms", version = "0.0.4")
