@@ -45,7 +45,7 @@ jobs:
 
           chmod +x "${CRED_HELPER}"
 
-          PAYLOAD='{"uri": "https://fusion.qnx.com/8/79858/installation.tgz"}'
+          PAYLOAD='{"uri": "https://fusion.qnx.com/6/85936/installation_qnx_803_260203.tar.xz?tid=3631642_wE_0220075214&ending=installation_qnx_803_260203.tar.xz"}'
 
           echo "Running helper with timeout 30s..."
           START=$(date +%s)
