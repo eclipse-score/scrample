@@ -33,7 +33,7 @@ jobs:
           repository-cache: true
 
       - name: Run Gazelle
-        run: bazel run //:gazelle
+        run: bazel run --lockfile_mode=error //:gazelle
 
       - name: Set version
         id: version
