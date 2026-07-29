@@ -21,6 +21,14 @@
 #include <iostream>
 #include <thread>
 
+//Some stupid comment
+
+//Some more stupid comments
+
+//Even more stupid comments
+
+//Comment #4
+
 namespace score::mw::com
 {
 
