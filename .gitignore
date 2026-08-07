@@ -44,7 +44,7 @@ external
 .ruff_cache
 
 # docs:incremental and docs:ide_support build artifacts
-/_build
+_build
 
 # Vale - editorial style guide
 .vale.ini
@@ -64,3 +64,4 @@ rust-project.json
 
 # vscode
 .vscode/
+ubproject.toml
