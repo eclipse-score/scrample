@@ -24,7 +24,7 @@ jobs:
       contents: read
       pull-requests: read
     with:
-      bazel-target: "//src:scrample"
+      bazel-target: "--lockfile_mode=error //src:scrample"
       bazel-config: "x86_64-qnx"
       credential-helper: ".github/tools/qnx_credential_helper.py"
       environment-name: "workflow-approval"
