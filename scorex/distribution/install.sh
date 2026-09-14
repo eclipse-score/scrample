@@ -51,7 +51,18 @@ detect_platform() {
 get_latest_version() {
     VERSION=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
     if [ -z "$VERSION" ]; then
-        echo "Error: Could not fetch latest version"
+        echo ""
+        echo "Error: No releases found for scorex"
+        echo ""
+        echo "To use this installer, a release must be published first."
+        echo "Maintainers: Create a release by pushing a version tag:"
+        echo "  git tag v0.1.0"
+        echo "  git push origin v0.1.0"
+        echo ""
+        echo "For now, you can build from source:"
+        echo "  cd scorex"
+        echo "  go build -o scorex ."
+        echo ""
         exit 1
     fi
     echo "Latest version: $VERSION"
@@ -85,6 +96,12 @@ install_scorex() {
 
     mv "$BINARY" "$INSTALL_DIR/scorex"
     chmod +x "$INSTALL_DIR/scorex"
+
+    # Remove quarantine attribute on macOS
+    if [ "$OS" = "Darwin" ]; then
+        echo "Removing macOS quarantine attribute..."
+        xattr -d com.apple.quarantine "$INSTALL_DIR/scorex" 2>/dev/null || true
+    fi
 
     rm -rf "$TEMP_DIR"
 

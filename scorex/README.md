@@ -80,36 +80,30 @@ The `init` command (see [scorex/cmd/init.go](scorex/cmd/init.go)) supports:
 
 ## Distribution
 
-The `scorex` CLI is distributed through multiple package managers for easy installation across different platforms.
-
 ### Installation Methods
 
-#### macOS & Linux - Homebrew
-
-```bash
-# Add the tap (once a tap repository is created)
-brew tap eclipse-score/tap
-
-# Install scorex
-brew install scorex
-```
-
-#### Windows - Scoop
-
-```bash
-# Add the bucket (once a bucket repository is created)
-scoop bucket add eclipse-score https://github.com/eclipse-score/scoop-bucket
-
-# Install scorex
-scoop install scorex
-```
-
-#### Universal - Install Script
+#### Install Script (Recommended)
 
 **macOS & Linux:**
 ```bash
 curl -sSL https://raw.githubusercontent.com/eclipse-score/score_scrample/main/scorex/distribution/install.sh | sh
 ```
+
+**Note**: Requires a published release. If no releases exist yet, use manual installation below.
+
+This script automatically:
+- Detects your OS and architecture
+- Downloads the correct binary from the latest release
+- Installs it to `$HOME/.local/bin/scorex` (customizable via `SCOREX_INSTALL_DIR`)
+- Makes it executable
+- Removes macOS quarantine attribute automatically
+
+**Add to PATH** (if not already):
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Add this to your `~/.zshrc` or `~/.bashrc` to make it permanent.
 
 #### Manual Download
 
@@ -120,59 +114,86 @@ Download the appropriate binary for your platform from the [releases page](https
 - **macOS (Intel)**: `scorex-VERSION-macos-x86_64.tar.gz`
 - **Windows (x86_64)**: `scorex-VERSION-windows-x86_64.zip`
 
-Extract and move to a directory in your PATH.
+**Installation steps:**
+
+1. Download the appropriate archive for your platform
+2. Extract it:
+   ```bash
+   # macOS/Linux
+   tar -xzf scorex-VERSION-platform.tar.gz
+
+   # Windows (PowerShell)
+   Expand-Archive scorex-VERSION-windows-x86_64.zip
+   ```
+3. Move the binary to a directory in your PATH:
+   ```bash
+   # macOS/Linux
+   sudo mv scorex-platform /usr/local/bin/scorex
+   sudo chmod +x /usr/local/bin/scorex
+
+   # Windows - move to a directory in your PATH or add the directory to PATH
+   ```
+4. **macOS only**: Remove the quarantine attribute (required for unsigned binaries):
+   ```bash
+   sudo xattr -d com.apple.quarantine /usr/local/bin/scorex
+   ```
+   
+   Alternatively, on first run, right-click the binary in Finder and select "Open" to bypass Gatekeeper.
+
+5. Verify installation:
+   ```bash
+   scorex version
+   ```
+
+**Note for macOS users**: The binaries are currently unsigned. You may see a security warning. Use the `xattr` command above or right-click > Open to bypass Gatekeeper.
 
 ### For Maintainers
 
+#### Testing the Release Flow in PRs
+
+The release workflow runs on PRs and creates artifacts. To test the binaries:
+
+1. **Go to the PR's Actions tab** and find the latest "Release scorex CLI" workflow run
+2. **Download the artifact** for your platform:
+   - `scorex-linux` - Contains Linux binary
+   - `scorex-macos` - Contains macOS binaries (ARM64 + Intel)
+   - `scorex-windows` - Contains Windows binary
+
+3. **Extract and test locally**:
+   ```bash
+   # Download artifact from GitHub Actions UI
+   unzip scorex-macos.zip
+   
+   # Extract the tar.gz
+   tar -xzf scorex-pr-*-macos-arm64.tar.gz
+   
+   # Make executable and remove quarantine (macOS)
+   chmod +x scorex-macos-arm64
+   xattr -d com.apple.quarantine scorex-macos-arm64 2>/dev/null || true
+   
+   # Test it
+   ./scorex-macos-arm64 --help
+   ./scorex-macos-arm64 version
+   
+   # Test creating a project
+   ./scorex-macos-arm64 init --name test_app --dir /tmp/test_scorex
+   ```
+
+**Note**: The install script cannot be tested in PRs since it requires a published GitHub release.
+
 #### Publishing a New Release
 
-1. Create and push a new version tag:
+1. **Create and push a version tag:**
    ```bash
    git tag v1.0.0
    git push origin v1.0.0
    ```
 
-2. GitHub Actions will automatically:
-   - Build binaries for all platforms
-   - Create compressed archives
-   - Generate checksums
-   - Create a GitHub release
+2. **GitHub Actions automatically:**
+   - Builds binaries for all platforms (Linux x86_64, macOS ARM64, macOS Intel, Windows x86_64)
+   - Creates compressed archives (.tar.gz for Unix, .zip for Windows)
+   - Generates `checksums.txt` with SHA256 hashes
+   - Creates a GitHub release with all artifacts
+   - For PRs and manual runs: Uploads separate artifacts per platform (`scorex-linux`, `scorex-macos`, `scorex-windows`)
 
-3. Update package manifests:
-
-   **Homebrew Formula** (`distribution/homebrew/scorex.rb`):
-   - Update version number
-   - Update SHA256 checksums from `checksums.txt` in the release
-
-   **Scoop Manifest** (`distribution/scoop/scorex.json`):
-   - Update version number
-   - Update SHA256 hash from `checksums.txt`
-
-4. Commit and push updated manifests to respective repositories:
-   - Homebrew: Create/update tap repository at `eclipse-score/homebrew-tap`
-   - Scoop: Create/update bucket repository at `eclipse-score/scoop-bucket`
-
-#### Setting Up Package Repositories
-
-**Homebrew Tap:**
-1. Create repository: `https://github.com/eclipse-score/homebrew-tap`
-2. Add `distribution/homebrew/scorex.rb` to the repository root or `Formula/` directory
-3. Users can then install with: `brew install eclipse-score/tap/scorex`
-
-**Scoop Bucket:**
-1. Create repository: `https://github.com/eclipse-score/scoop-bucket`
-2. Add `distribution/scoop/scorex.json` to the `bucket/` directory
-3. Users can then install with: `scoop bucket add eclipse-score <repo-url>` then `scoop install scorex`
-
-#### Updating Checksums
-
-After each release, download `checksums.txt` from the GitHub release and update:
-
-```bash
-# Example for version 1.0.0
-curl -sL https://github.com/eclipse-score/score_scrample/releases/download/v1.0.0/checksums.txt
-
-# Update the SHA256 values in:
-# - distribution/homebrew/scorex.rb
-# - distribution/scoop/scorex.json
-```
+3. **Users can install** via the install script or manual download from the releases page
