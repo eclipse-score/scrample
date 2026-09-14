@@ -132,7 +132,7 @@ use_repo(
 )
 
 #### Following section for Feo framework examples ###
-bazel_dep(name = "score_crates", version = "0.0.6")
+bazel_dep(name = "score_crates", version = "0.0.12")
 
 crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
 crate.from_cargo(
