@@ -64,30 +64,30 @@ bazel_dep(name = "boost.program_options", version = "1.87.0")
 bazel_dep(name = "rules_cc", version = "0.2.1")
 
 # tooling
-bazel_dep(name = "score_tooling", version = "1.0.5")
+bazel_dep(name = "score_tooling", version = "1.1.2")
 bazel_dep(name = "score_rust_policies", version = "0.0.3")
-bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
-bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
+bazel_dep(name = "aspect_rules_lint", version = "2.2.0")
+bazel_dep(name = "buildifier_prebuilt", version = "8.2.1.2")
 
 #docs-as-code
-bazel_dep(name = "score_docs_as_code", version = "2.3.3")
+bazel_dep(name = "score_docs_as_code", version = "3.0.1")
 bazel_dep(name = "score_process", version = "1.4.2")
-bazel_dep(name = "score_baselibs", version = "0.1.3")
-bazel_dep(name = "score_communication", version = "0.1.1")
+bazel_dep(name = "score_baselibs", version = "0.2.4")
+bazel_dep(name = "score_communication", version = "0.1.4")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "score_bazel_platforms", version = "0.0.2")
-bazel_dep(name = "score_logging", version = "0.0.3")
-git_override(
-    module_name = "score_logging",
-    commit = "9ed6a88cab10a81bf6b0813712cbd7b9fc7e44c5",
-    remote = "https://github.com/eclipse-score/logging.git",
-)
+bazel_dep(name = "score_bazel_platforms", version = "0.1.1")
+bazel_dep(name = "score_logging", version = "0.1.0")
+#git_override(
+#   module_name = "score_logging",
+#  commit = "9ed6a88cab10a81bf6b0813712cbd7b9fc7e44c5",
+# remote = "https://github.com/eclipse-score/logging.git",
+#)
 
 # TRLC dependency for requirements traceability
 bazel_dep(name = "trlc", version = "0.0.0")
 git_override(
     module_name = "trlc",
-    commit = "ede35c4411d41abe42b8f19e78f8989ff79ad3d8",
+    commit = "a4f7e95210d8093ba208b91cbc5b681eae8d502b",
     remote = "https://github.com/bmw-software-engineering/trlc.git",
 )
 
