@@ -11,12 +11,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@score_docs_as_code//:docs.bzl", "docs")
 load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker", "setup_starpls", "use_format_targets")
 load("//:project_config.bzl", "PROJECT_CONFIG")
-
-gazelle(name = "gazelle")
 
 setup_starpls(
     name = "starpls_server",
@@ -26,9 +23,7 @@ setup_starpls(
 copyright_checker(
     name = "copyright",
     srcs = [
-        "feo/ad-demo",
-        "scorex",
-        "src",
+        "src_cpp",
         "tests",
         "//:BUILD",
         "//:MODULE.bazel",

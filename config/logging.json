@@ -1,0 +1,7 @@
+{
+    "appId": "SCRM",
+    "appDesc": "SCRAMPLE Rust App",
+    "logMode": "kConsole",
+    "logLevel": "kVerbose",
+    "logLevelThresholdConsole": "kInfo"
+}

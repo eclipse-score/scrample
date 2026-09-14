@@ -27,19 +27,35 @@ python.toolchain(
 )
 use_repo(python, "python_versions")
 
-# Configure the target toolchain.
-bazel_dep(name = "score_toolchains_qnx", version = "0.0.2", dev_dependency = True)
+# C++ and QNX toolchains (same setup as score_baselibs / score_baselibs_rust)
+bazel_dep(name = "score_bazel_cpp_toolchains", version = "0.5.1", dev_dependency = True)
 
-qnx = use_extension("@score_toolchains_qnx//:extensions.bzl", "toolchains_qnx", dev_dependency = True)
-qnx.sdp(
-    sha256 = "f2e0cb21c6baddbcb65f6a70610ce498e7685de8ea2e0f1648f01b327f6bac63",
-    strip_prefix = "installation",
-    url = "https://www.qnx.com/download/download/79858/installation.tgz",
+gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc", dev_dependency = True)
+gcc.toolchain(
+    name = "score_gcc_x86_64_toolchain",
+    target_cpu = "x86_64",
+    target_os = "linux",
+    use_default_package = True,
+    version = "12.2.0",
 )
-use_repo(qnx, "toolchains_qnx_sdp")
-use_repo(qnx, "toolchains_qnx_qcc")
+gcc.toolchain(
+    name = "score_qcc_x86_64_toolchain",
+    sdp_version = "8.0.0",
+    target_cpu = "x86_64",
+    target_os = "qnx",
+    use_default_package = True,
+    version = "12.2.0",
+)
+use_repo(
+    gcc,
+    "score_gcc_x86_64_toolchain",
+    "score_qcc_x86_64_toolchain",
+)
 
-# register_toolchains("@toolchains_qnx_qcc//:qcc_x86_64")
+# Ferrocene Rust toolchains (QNX cross-compilation support)
+# score_toolchains_rust already declares ferrocene_x86_64_pc_nto_qnx800 internally;
+# the toolchain alias is accessible at @score_toolchains_rust//toolchains/ferrocene:...
+bazel_dep(name = "score_toolchains_rust", version = "0.9.1", dev_dependency = True)
 
 # Add GoogleTest dependency
 bazel_dep(name = "googletest", version = "1.17.0")
@@ -48,40 +64,33 @@ bazel_dep(name = "googletest", version = "1.17.0")
 bazel_dep(name = "rules_rust", version = "0.61.0")
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
-rust.toolchain(edition = "2021")
-
-# Add boost dependency
-bazel_dep(name = "rules_boost", repo_name = "com_github_nelhage_rules_boost")
-archive_override(
-    module_name = "rules_boost",
-    strip_prefix = "rules_boost-master",
-    urls = ["https://github.com/nelhage/rules_boost/archive/refs/heads/master.tar.gz"],
+rust.toolchain(
+    edition = "2021",
+    versions = ["1.90.0"],
 )
-
-bazel_dep(name = "boost.program_options", version = "1.87.0")
 
 # C/C++ rules for Bazel
 bazel_dep(name = "rules_cc", version = "0.2.1")
 
 # tooling
-bazel_dep(name = "score_tooling", version = "1.0.5")
+bazel_dep(name = "score_tooling", version = "1.1.2")
 bazel_dep(name = "score_rust_policies", version = "0.0.3")
 bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 
 #docs-as-code
-bazel_dep(name = "score_docs_as_code", version = "2.3.3")
-bazel_dep(name = "score_process", version = "1.4.2")
-bazel_dep(name = "score_baselibs", version = "0.1.3")
-bazel_dep(name = "score_communication", version = "0.1.1")
-bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "score_bazel_platforms", version = "0.0.2")
-bazel_dep(name = "score_logging", version = "0.0.3")
-git_override(
-    module_name = "score_logging",
-    commit = "9ed6a88cab10a81bf6b0813712cbd7b9fc7e44c5",
-    remote = "https://github.com/eclipse-score/logging.git",
+bazel_dep(name = "score_docs_as_code", version = "4.0.3")
+single_version_override(
+    module_name = "score_docs_as_code",
+    version = "4.0.3",
 )
+
+bazel_dep(name = "score_process", version = "1.5.4")
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "score_bazel_platforms", version = "0.1.2")
+bazel_dep(name = "score_baselibs", version = "0.2.7")
+bazel_dep(name = "score_baselibs_rust", version = "0.1.2")
+bazel_dep(name = "score_logging", version = "0.2.1")
 
 # TRLC dependency for requirements traceability
 bazel_dep(name = "trlc", version = "0.0.0")
@@ -90,77 +99,3 @@ git_override(
     commit = "ede35c4411d41abe42b8f19e78f8989ff79ad3d8",
     remote = "https://github.com/bmw-software-engineering/trlc.git",
 )
-
-bazel_dep(name = "rules_go", version = "0.59.0")
-bazel_dep(name = "gazelle", version = "0.42.0", repo_name = "bazel_gazelle")
-
-go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk", dev_dependency = True)
-go_sdk.download(
-    name = "go_sdk",
-    version = "1.23.5",
-)
-go_sdk.download(
-    name = "go_linux_amd64",
-    goarch = "amd64",
-    goos = "linux",
-    version = "1.23.5",
-)
-go_sdk.download(
-    name = "go_darwin_arm64",
-    goarch = "arm64",
-    goos = "darwin",
-    version = "1.23.5",
-)
-go_sdk.download(
-    name = "go_windows_amd64",
-    goarch = "amd64",
-    goos = "windows",
-    version = "1.23.5",
-)
-go_sdk.download(
-    name = "go_darwin_amd64",
-    goarch = "amd64",
-    goos = "darwin",
-    version = "1.23.5",
-)
-
-go_deps = use_extension("@bazel_gazelle//:extensions.bzl", "go_deps")
-go_deps.from_file(go_mod = "//scorex:go.mod")
-use_repo(
-    go_deps,
-    "com_github_spf13_cobra",
-)
-
-#### Following section for Feo framework examples ###
-bazel_dep(name = "score_crates", version = "0.0.6")
-
-crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
-crate.from_cargo(
-    name = "ad-demo-local-crates",
-    cargo_lockfile = "//feo/ad-demo:Cargo.lock",
-    manifests = [
-        "//feo/ad-demo:Cargo.toml",
-    ],
-)
-use_repo(crate, "ad-demo-local-crates")
-
-# Override feo's dependency on score_docs_as_code to use 2.3.3
-single_version_override(
-    module_name = "score_docs_as_code",
-    version = "2.3.3",
-)
-
-bazel_dep(name = "feo", version = "1.0.1")
-git_override(
-    module_name = "feo",
-    commit = "05702d0a386daf23912c26ccb2b35b584d3a9e8c",
-    remote = "https://github.com/eclipse-score/feo.git",
-)
-
-pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
-pip.parse(
-    hub_name = "lichtblick_com_pypi",
-    python_version = "3.12",
-    requirements_lock = "//feo/ad-demo/lichtblick-com:requirements_lock.txt",
-)
-use_repo(pip, "lichtblick_com_pypi")

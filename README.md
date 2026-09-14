@@ -3,157 +3,112 @@
 [![Build Status](https://github.com/eclipse-score/scrample/actions/workflows/build.yml/badge.svg)](https://github.com/eclipse-score/scrample/actions/workflows/build.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**SCRAMPLE** (S-CORE + Sample) is a demonstration application showcasing the inter-process communication (IPC) capabilities of the [Eclipse S-CORE](https://projects.eclipse.org/projects/automotive.score) platform for Software Defined Vehicles (SDVs).
+**SCRAMPLE** (S-CORE + Sample) is a demo application showcasing the logging capabilities of the [Eclipse S-CORE](https://projects.eclipse.org/projects/automotive.score) platform for Software Defined Vehicles (SDVs).
 
 ## Overview
 
-This application demonstrates a producer-consumer pattern using S-CORE's middleware communication layer. It illustrates:
-
-- **Event-based communication** using the S-CORE middleware (`score::mw::com`)
-- **Shared memory IPC** for high-performance data transfer between processes
-- **Type-safe serialization** of complex automotive data structures
-- **Skeleton-Proxy pattern** following AUTOSAR Adaptive Platform concepts
-
-The sample exchanges `MapApiLanesStamped` messages containing lane information data structures, simulating real-world automotive HD map data exchange scenarios.
-
-## Architecture
-
-SCRAMPLE consists of two operational modes:
-
-### Skeleton (Publisher/Server)
-- Offers a service instance identified by `score/MapApiLanesStamped`
-- Generates and publishes lane data samples at a configurable cycle rate
-- Populates complex nested data structures with randomized values
-- Computes hash values for data integrity verification
-
-### Proxy (Subscriber/Client)
-- Discovers and connects to the skeleton service
-- Subscribes to receive lane data events
-- Validates received samples for ordering and data integrity
-- Supports both event-driven callbacks and polling modes
+SCRAMPLE provides two minimal "Hello World" applications — one in C++ and one in Rust — that both use the S-CORE `mw::log` logging library. They share a common logging configuration and produce identical output, demonstrating how to integrate `mw::log` in both languages.
 
 ## Prerequisites
 
 - **Bazel** 8.3.0 or higher (see `.bazelversion`)
 - **QNX SDP** (for cross-compilation to QNX targets)
 - **C++17** compatible compiler
-- **Rust toolchain** (automatically managed by Bazel for Rust tests)
+- **Rust toolchain** (automatically managed by Bazel via Ferrocene)
 - **Dependencies** (automatically managed via Bazel):
   - S-CORE Base Libraries (`score_baselibs`)
-  - S-CORE Communication (`score_communication`)
-  - Boost.Program_Options
-  - GoogleTest (for C++ tests)
-  - Rust toolchain (for Rust tests)
+  - S-CORE Logging (`score_logging`)
+  - S-CORE Base Libraries Rust (`score_baselibs_rust`)
+
+## Toolchains
+
+SCRAMPLE uses the same toolchain setup as the other S-CORE modules.
+
+### C++ Toolchains
+
+Toolchains are provided by [`score_bazel_cpp_toolchains`](https://github.com/eclipse-score/bazel_cpp_toolchains) via the `gcc` Bzlmod extension:
+
+| Toolchain | Target | Used for |
+|---|---|---|
+| `score_gcc_x86_64_toolchain` | x86_64 Linux (GCC 12.2.0) | `--config=host` builds |
+| `score_qcc_x86_64_toolchain` | x86_64 QNX SDP 8.0.0 | `--config=x86_64-qnx` builds |
+
+### Rust Toolchains
+
+Rust toolchains are provided by [`score_toolchains_rust`](https://github.com/eclipse-score/toolchains_rust), which bundles pre-built [Ferrocene](https://ferrous-systems.com/ferrocene/) toolchains:
+
+| Toolchain | Target | Used for |
+|---|---|---|
+| `ferrocene_x86_64_unknown_linux_gnu` | x86_64 Linux | Host builds + proc macro compilation |
+| `ferrocene_x86_64_pc_nto_qnx800` | x86_64 QNX Neutrino 8.0.0 | `--config=x86_64-qnx` Rust builds |
+
+The Ferrocene Linux toolchain is registered as a `common` toolchain so that proc macro crates (compiled on the host) and QNX target crates share the same compiler metadata format, which is required for cross-compilation compatibility.
+
+### Key `.bazelrc` Flags
+
+| Flag | Purpose |
+|---|---|
+| `--@score_baselibs//score/memory/shared/flags:use_typedshmd=False` | Disables proprietary Shared Memory Data Router (not available in public CI) |
+| `--@score_baselibs//score/mw/log/flags:KRemote_Logging=False` | Disables remote logging backend (not needed for this demo) |
 
 ## Building
 
-### Standard Build (Host Platform)
+### Build the C++ app
 ```bash
-bazel build --config=host //src:scrample
+bazel build --config=host //src_cpp:scrample_cpp
+```
+
+### Build the Rust app
+```bash
+bazel build --config=host //src_rust:scrample_rust
+```
+
+### Build both apps
+```bash
+bazel build --config=host //src_cpp:scrample_cpp //src_rust:scrample_rust
 ```
 
 ### QNX Cross-Compilation
 ```bash
-bazel build --config=x86_64-qnx //src:scrample
-```
-
-### Build All Tests
-```bash
-bazel test --config=host //tests/...
+bazel build --config=x86_64-qnx //src_cpp:scrample_cpp
+bazel build --config=x86_64-qnx //src_rust:scrample_rust
 ```
 
 **Note:** Always use a build configuration (`--config=host` or `--config=x86_64-qnx`) to ensure proper dependency settings.
 
 ## Running
 
-After building with `--config=host`, the binary will be in `bazel-bin/src/scrample`.
+After building with `--config=host`:
 
-### Quick Start (Two Terminals)
-
-To see the IPC communication in action, open two terminals:
-
-**Terminal 1 - Start Skeleton (Publisher):**
+### C++ app
 ```bash
-./bazel-bin/src/scrample \
-  --mode skeleton \
-  --cycle-time 1000 \
-  --num-cycles 10 \
-  --service_instance_manifest src/etc/mw_com_config.json
+./bazel-bin/src_cpp/scrample_cpp
 ```
 
-**Terminal 2 - Start Proxy (Subscriber):**
+### Rust app
 ```bash
-./bazel-bin/src/scrample \
-  --mode proxy \
-  --cycle-time 500 \
-  --num-cycles 20 \
-  --service_instance_manifest src/etc/mw_com_config.json
+./bazel-bin/src_rust/scrample_rust
 ```
 
-You should see the proxy discover the skeleton service, subscribe, and receive `MapApiLanesStamped` samples. The proxy validates data integrity and ordering for each received sample.
-
-### Start Skeleton (Publisher)
-```bash
-./bazel-bin/src/scrample \
-  --mode skeleton \
-  --cycle-time 1000 \
-  --num-cycles 10 \
-  --service_instance_manifest src/etc/mw_com_config.json
+Both apps produce the same log output to the console:
 ```
-
-### Start Proxy (Subscriber)
-```bash
-./bazel-bin/src/scrample \
-  --mode proxy \
-  --cycle-time 500 \
-  --num-cycles 20 \
-  --service_instance_manifest src/etc/mw_com_config.json
+2026/05/22 12:00:00.0000000 00000000 000 ECU1 SCRM scra log info verbose 1 Hello from SCRAMPLE!
 ```
-
-### Command-Line Options
-
-| Option | Description | Required |
-|--------|-------------|----------|
-| `--mode, -m` | Operation mode: `skeleton`/`send` or `proxy`/`recv` | Yes |
-| `--cycle-time, -t` | Cycle time in milliseconds for sending/polling | Yes |
-| `--num-cycles, -n` | Number of cycles to execute (0 = infinite) | Yes |
-| `--service_instance_manifest, -s` | Path to communication config JSON | Optional |
-| `--disable-hash-check, -d` | Skip sample hash validation in proxy mode | Optional |
-
-## Configuration
-
-The communication behavior is configured via `src/etc/mw_com_config.json`:
-
-- Service type definitions and bindings
-- Event definitions with IDs
-- Instance-specific configuration (shared memory settings, subscriber limits)
-- ASIL level and process ID restrictions
 
 ## Project Structure
 
 ```
 scrample/
-├── src/
-│   ├── main.cpp                  # Entry point and CLI argument parsing
-│   ├── sample_sender_receiver.cpp # Core skeleton/proxy logic
-│   ├── datatype.h                # Data type definitions
-│   ├── assert_handler.cpp        # Custom assertion handling
-│   └── etc/
-│       ├── mw_com_config.json    # Communication configuration
-│       └── logging.json          # Logging configuration
-├── tests/
-│   ├── cpp/                      # C++ unit tests (GoogleTest)
-│   └── rust/                     # Rust tests
-├── scorex/                       # CLI tool for generating S-CORE projects
-│   ├── main.go                   # Entry point
-│   ├── cmd/                      # Cobra CLI commands
-│   ├── internal/                 # Internal packages
-│   └── README.md                 # scorex documentation
-├── docs/                         # Sphinx documentation
-└── BUILD                         # Bazel build definitions
+├── src_cpp/
+│   ├── main.cpp        # C++ app using score::mw::log
+│   └── BUILD
+├── src_rust/
+│   ├── main.rs         # Rust app using score_log + score_log_bridge
+│   └── BUILD
+├── config/
+│   └── logging.json    # Shared logging configuration (console, kInfo)
+└── BUILD               # Bazel build definitions
 ```
-
-**For information about the scorex CLI tool, see [scorex/README.md](scorex/README.md).**
 
 ## Development
 
@@ -175,30 +130,7 @@ Verify copyright headers are present:
 bazel run //:copyright.check
 ```
 
-### Build Documentation
-Build Sphinx documentation:
-```bash
-bazel build //:docs
-```
-
-**Note:** Formatting and documentation commands don't require `--config` flags.
-
-## Testing
-
-The project includes example tests demonstrating the testing infrastructure:
-
-- **C++ Tests**: GoogleTest-based unit tests in `tests/cpp/`
-- **Rust Tests**: Rust test framework in `tests/rust/`
-
-Run all tests:
-```bash
-bazel test --config=host //tests/...
-```
-
-Run all tests and format checks:
-```bash
-bazel test --config=host //tests/... //:format.check
-```
+**Note:** Formatting commands don't require `--config` flags.
 
 ## Contributing
 
@@ -251,12 +183,13 @@ QNX cross-compilation requires:
 - QNX SDP installation and license
 - Proper credential setup (see `.github/workflows/build.yml` for CI example)
 
+The required `score_baselibs` feature flags (`use_typedshmd=False`, `KRemote_Logging=False`) are already configured in `.bazelrc` and apply automatically.
+
 ## Roadmap
 
 Future extensions planned for SCRAMPLE:
 
 - Additional S-CORE platform module demonstrations
-    - [FEO demo application](feo/ad-demo/README.md)
 - More complex communication patterns
 - Performance benchmarking utilities
 - Integration with other S-CORE components

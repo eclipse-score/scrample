@@ -13,18 +13,49 @@
 
 name: Scrample Build
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
 jobs:
-  qnx-build:
+  cpp-host-build:
+    uses: eclipse-score/cicd-workflows/.github/workflows/tests.yml@c1c90b1a82a1fab0fc202979dde6686b2162d5a8 # v0.0.0
+    permissions:
+      contents: read
+      pull-requests: read
+    with:
+      bazel-target: "build --config=host //src_cpp:scrample_cpp"
+
+  cpp-qnx-build:
     uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@c1c90b1a82a1fab0fc202979dde6686b2162d5a8 # v0.0.0
     permissions:
       contents: read
       pull-requests: read
     with:
-      bazel-target: "//src:scrample"
+      bazel-target: "//src_cpp:scrample_cpp"
+      bazel-config: "x86_64-qnx"
+      credential-helper: ".github/tools/qnx_credential_helper.py"
+      environment-name: "workflow-approval"
+    secrets:
+      score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
+      score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
+      score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
+
+  rust-host-build:
+    uses: eclipse-score/cicd-workflows/.github/workflows/tests.yml@c1c90b1a82a1fab0fc202979dde6686b2162d5a8 # v0.0.0
+    permissions:
+      contents: read
+      pull-requests: read
+    with:
+      bazel-target: "build --config=host //src_rust:scrample_rust"
+
+  rust-qnx-build:
+    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@c1c90b1a82a1fab0fc202979dde6686b2162d5a8 # v0.0.0
+    permissions:
+      contents: read
+      pull-requests: read
+    with:
+      bazel-target: "//src_rust:scrample_rust"
       bazel-config: "x86_64-qnx"
       credential-helper: ".github/tools/qnx_credential_helper.py"
       environment-name: "workflow-approval"
