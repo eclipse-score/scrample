@@ -10,10 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-module(
-    name = "score_scrample",
-    version = "0.1.0",
-)
+module(name = "score_scrample")
 
 # Configure and register the python toolchain.
 bazel_dep(name = "rules_python", version = "1.4.1")
