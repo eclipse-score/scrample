@@ -62,5 +62,9 @@
   {
     "version": "pr-34",
     "url": "https://eclipse-score.github.io/scrample/pr-34/"
+  },
+  {
+    "version": "pr-42",
+    "url": "https://eclipse-score.github.io/scrample/pr-42/"
   }
 ]
