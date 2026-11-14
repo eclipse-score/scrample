@@ -44,7 +44,12 @@ external
 .ruff_cache
 
 # docs:incremental and docs:ide_support build artifacts
-/_build
+
+# docs-as-code build artifacts
+# Please don't edit locally; repo_policy_sync keeps this block in sync from score_tools.
+_build/
+ubproject.toml
+# end docs-as-code build artifacts
 
 # Vale - editorial style guide
 .vale.ini
