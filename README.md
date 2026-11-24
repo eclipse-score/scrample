@@ -3,6 +3,10 @@
 [![Build Status](https://github.com/eclipse-score/scrample/actions/workflows/build.yml/badge.svg)](https://github.com/eclipse-score/scrample/actions/workflows/build.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+> [!IMPORTANT]
+> This repository is archived and no longer maintained. For examples of the S-CORE modules working
+> together, see the showcases of [reference_integration](https://github.com/eclipse-score/reference_integration).
+
 **SCRAMPLE** (S-CORE + Sample) is a demonstration application showcasing the inter-process communication (IPC) capabilities of the [Eclipse S-CORE](https://projects.eclipse.org/projects/automotive.score) platform for Software Defined Vehicles (SDVs).
 
 ## Overview
