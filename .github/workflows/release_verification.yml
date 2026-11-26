@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   build_target:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.2
@@ -47,7 +47,7 @@ jobs:
         run: rm -rf /opt/score_qnx
 
   release_verification:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [build_target]
     if: always() && (needs.build_target.result == 'failure')
     steps:
